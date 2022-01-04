@@ -271,6 +271,58 @@ rbindlist(lapply(DT[,number],function(x){ # the function being defined right her
 
 ```
 
+# Data visualization
+
+    Visualizing your data in an intuitive and aesthetically pleasing manner is both useful in the process of getting to know your data and in the publication of your results (...more...).
+
+    The package ggplot2 is powerfull tool for plotting basically anything you could think of and it allows you to modify all aspects of your plot which makes it much more flexible than the plot function in base R.
+
+## The layers of ggplot
+    A ggplot consists of different layers that can be combined to a graph. The different layers will add an extra layer of information to the plot. You can (in most cases) add several layers of the same type, e.g. two different geometries can be added and will create one plot with two types of graphs inside. In the following the different layers and their content is described briefly and a (simple) example is shown.
+
+    - **Data**: The data input for your plot can be in different formats, either as a full dataset, where each row is an observation  or as summerized data, e.g. counts or percentages for different groups.
+    - **Mapping of data**: The mapping of data is defined using the function aes(). It is used to describe which part of your data input that is used for what e.g. which variable is your x and y axis.
+    - **Geometries**: The geometry is used to define how the data should be interpreted, e.g. as point, lines or bars.
+    - **Theme**: Themes can be used to modify anything that is unrelated to your data including labels, fonts, text size, background colors etc.
+
+## Example
+    ```{r eval=T}
+    library(ggplot2)
+    data.table::setDT(dt <- mpg) #toy dataset described here: https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fggplot2.tidyverse.org%2Freference%2Fmpg.html&amp;data=04%7C01%7Cctp%40sund.ku.dk%7C27ed7b26c51f49b4317508d9cf547db0%7Ca3927f91cda14696af898c9f1ceffa91%7C0%7C0%7C637768784051838432%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000&amp;sdata=EWHt%2BlqUbvy8aza1CV1MRJd0gQBeCFtVoFaGIlmKeXQ%3D&amp;reserved=0
+
+    ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+      geom_point() #most simple scatterplot
+    ```
+
+    ```{r eval=T}
+    ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+      geom_point()+ #most simple scatterplot
+      theme_classic() #adding theme
+    ```
+
+    ```{r eval=T}
+    ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+      geom_point()+ #most simple scatterplot
+      theme_classic()+ #adding theme
+      labs(title="Title",
+           x="CTY",
+           y="HWY") #adding plot titles
+    ```
+
+    ```{r eval=T}
+    ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+      geom_point()+ #most simple scatterplot
+      theme_classic()+ #adding theme
+      labs(title="Title",
+           x="CTY",
+           y="HWY")+ #adding plot titles
+      geom_point(mapping=aes(color=fl)) #adding grouping (could also be included in the previous geom_point call)
+    ```
+
+    The possibles are endless and we can suggest using the help page https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.r-graph-gallery.com%2Findex.html&amp;data=04%7C01%7Cctp%40sund.ku.dk%7C27ed7b26c51f49b4317508d9cf547db0%7Ca3927f91cda14696af898c9f1ceffa91%7C0%7C0%7C637768784051838432%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000&amp;sdata=yjn0jRgVSCZP8U4kyNtLwoVMn0HXo4Z8jFL1Vm5POno%3D&amp;reserved=0 as inspiration or our very own demonstration at https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fheart.dk%2Fwp-content%2Fuploads%2F2020%2F04%2Fintroduction_to_ggplot.html&amp;data=04%7C01%7Cctp%40sund.ku.dk%7C27ed7b26c51f49b4317508d9cf547db0%7Ca3927f91cda14696af898c9f1ceffa91%7C0%7C0%7C637768784051838432%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000&amp;sdata=IbKQR3fD%2FXG%2Bk9KZBUzfUoERZ4Vl1cbMFx0cqPIuu8M%3D&amp;reserved=0
+
+
+
 
 
 
