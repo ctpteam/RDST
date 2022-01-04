@@ -271,22 +271,62 @@ rbindlist(lapply(DT[,number],function(x){ # the function being defined right her
 
 ```
 
+---
+title: "Untitled"
+output: html_document
+---
 
+```{r setup, include=T}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
+# Data visualization 
 
+Visualizing your data in an intuitive and aesthetically pleasing manner is both useful in the process of getting to know your data and in the publication of your results (...more...).
 
+The package ggplot2 is powerfull tool for plotting basically anything you could think of and it allows you to modify all aspects of your plot which makes it much more flexible than the plot function in base R.
 
+## The layers of ggplot
+A ggplot consists of different layers that can be combined to a graph. The different layers will add an extra layer of information to the plot. You can (in most cases) add several layers of the same type, e.g. two different geometries can be added and will create one plot with two types of graphs inside. In the following the different layers and their content is described briefly and a (simple) example is shown. 
 
+- **Data**: The data input for your plot can be in different formats, either as a full dataset, where each row is an observation  or as summerized data, e.g. counts or percentages for different groups.
+- **Mapping of data**: The mapping of data is defined using the function aes(). It is used to describe which part of your data input that is used for what e.g. which variable is your x and y axis. 
+- **Geometries**: The geometry is used to define how the data should be interpreted, e.g. as point, lines or bars. 
+- **Theme**: Themes can be used to modify anything that is unrelated to your data including labels, fonts, text size, background colors etc.
 
+## Example 
+```{r eval=T}
+library(ggplot2)
+data.table::setDT(dt <- mpg) #toy dataset described here: https://ggplot2.tidyverse.org/reference/mpg.html
 
+ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+  geom_point() #most simple scatterplot 
+```
 
+```{r eval=T}
+ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+  geom_point()+ #most simple scatterplot
+  theme_classic() #adding theme 
+```
 
+```{r eval=T}
+ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+  geom_point()+ #most simple scatterplot
+  theme_classic()+ #adding theme 
+  labs(title="Title",
+       x="CTY",
+       y="HWY") #adding plot titles
+```
 
+```{r eval=T}
+ggplot(data=dt,mapping=aes(x=cty,y=hwy))+
+  geom_point()+ #most simple scatterplot
+  theme_classic()+ #adding theme 
+  labs(title="Title",
+       x="CTY", 
+       y="HWY")+ #adding plot titles
+  geom_point(mapping=aes(color=fl)) #adding grouping (could also be included in the previous geom_point call)
+```
 
-
-
-
-
-
-
+The possibles are endless and we can suggest using the help page https://www.r-graph-gallery.com/index.html as inspiration or our very own demonstration at https://heart.dk/wp-content/uploads/2020/04/introduction_to_ggplot.html 
 
