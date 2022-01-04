@@ -121,7 +121,7 @@ Data.table attemps to limit use of RAM by not making copies of data. If you writ
 The creation of new variables will be made using 'j': **DT[,j,]**.
 A simple new variable examplified by age is created with **DT[,age:=(date-birthdate)/365.25]**. This assumes that both date and birthdate are R dates.
 
-A common target is to make a variable that is the largest or smallst non-missing of several other variables. This is accomplished with **DT[,max:=pmax(var1,var2,var3,na.rm=TRUE)]**.  Beward of the "p" in "pmax" this p dictates that the comparison is made on a record level.
+A common target is to make a variable that is the largest or smallest non-missing of several other variables. This is accomplished with **DT[,max:=pmax(var1,var2,var3,na.rm=TRUE)]**.  Beware of the "p" in "pmax" this p dictates that the comparison is made on a record level.
 
 Several variables can be created in one step: **DT[,':='(var1=var3+var4,var5=var2*5)]**
 
@@ -192,7 +192,7 @@ if two data.tables have been provided the same key with **setkey** or **setkeyv*
 If a whole series of data.tables need to be merged, the simple merge function cannot do it, but it can be achieved with the **Reduce()** function. This function requires two parameters - a function and a list. Reduce will perform the function on the first two members of the list, then the result of this is put in the function along with the third member of the list etc. Thus, a left merge where the first member of a list of data.tables defines which individuals are in the final dataset can be made with: **DT <- Reduce(function(x,y){merge(x,y,all.x=TRUE,by="idvar")},list(DT1,DT2,DT3,...))**
 
 ## Summary statistics
-It is common that You need to create datasets that are summary statistics of other datasets. Data.table has a strong interface for this: **DT2 <- DT[,.(mean=mean(var1),nunmber=length(var1), max=max(var1)), by="grouping_variable"]**. This statement will calculate the mean and the maxfor each level of the grouping variable. In this statement the "." just before the parenthesis is short for "list".  
+It is common that You need to create datasets that are summary statistics of other datasets. Data.table has a strong interface for this: **DT2 <- DT[,.(mean=mean(var1),nunmber=length(var1), max=max(var1)), by="grouping_variable"]**. This statement will calculate the mean and the max for each level of the grouping variable. In this statement the "." just before the parenthesis is short for "list".  
 
 ## Numbering
 
