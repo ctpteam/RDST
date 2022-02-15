@@ -96,7 +96,7 @@ Many datasets are saved as "rds" files, single R objects. They are read and adde
 
 # Save data
 
-The most efficient way to store datasets is as single object using **writeRDS(name_of_object,file="PathToFile.rds")**. If your working directory is the project directory and you want the object saved in the subdirectory "data" then use **writeRDS(name_of_object,file="/data/PathToFile.rds")**.
+The most efficient way to store datasets is as single object using **saveRDS(name_of_object,file="PathToFile.rds")**. If your working directory is the project directory and you want the object saved in the subdirectory "data" then use **saveRDS(name_of_object,file="/data/PathToFile.rds")**.
 
 If you need to output text files (ASCII) then use **data.table::fwrite(name_of_object,file="pathToFile.csv")**. This is useful if you want to use Excel and similar to produce tables. Most table are generated in programs as data.frame or data.table and after converting to a csv-object they can be read with Excel.  Note that the **fwrite** function senses the details of output format from the file name you provide.
 
