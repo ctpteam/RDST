@@ -67,7 +67,7 @@ Hard drive memory should also be used sparingly, although less so than RAM. What
 # Starting a project
 If you have used the **create_project()** function to define the project there are suggestions for R scripts that encourage a starting comment defining the author and the purpose of the program.
 
-In the beginning of your program, you should use the function **setwd("path to data")** to the directory for your data - or to the directory for your project.  This makes reference to datasets in your project easier.  If you choose the directory of the project you can use relative paths to read and write in subfolders of your project such as **writeRDS(R-object-name,file="/data/filename.rds")** to write in the "data" subfolder.
+In the beginning of your program, you should use the function **setwd("path to data")** to the directory for your data - or to the directory for your project.  This makes reference to datasets in your project easier.  If you choose the directory of the project you can use relative paths to read and write in subfolders of your project such as **saveRDS(R-object-name,file="/data/filename.rds")** to write in the "data" subfolder.
 
 # Read data
 Data in Statistics Denmark is generally provided as SAS datasets - and a few data are provided in ASCII format which includes the very useful "csv" format.

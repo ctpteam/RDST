@@ -13,7 +13,7 @@
 <meta name="author" content="Kathrine Kold Sørensen" />
 <meta name="author" content="Amalie Lykkemark Møller" />
 
-<meta name="date" content="2022-02-01" />
+<meta name="date" content="2022-02-16" />
 
 <title>R on DST</title>
 
@@ -174,7 +174,7 @@ pre code {
 <h4 class="author">Christian Torp-Pedersen</h4>
 <h4 class="author">Kathrine Kold Sørensen</h4>
 <h4 class="author">Amalie Lykkemark Møller</h4>
-<h4 class="date">01 February 2022</h4>
+<h4 class="date">16 February 2022</h4>
 
 </div>
 
@@ -220,7 +220,7 @@ pre code {
 <div id="starting-a-project" class="section level1">
 <h1>Starting a project</h1>
 <p>If you have used the <strong>create_project()</strong> function to define the project there are suggestions for R scripts that encourage a starting comment defining the author and the purpose of the program.</p>
-<p>In the beginning of your program, you should use the function <strong>setwd(“path to data”)</strong> to the directory for your data - or to the directory for your project. This makes reference to datasets in your project easier. If you choose the directory of the project you can use relative paths to read and write in subfolders of your project such as <strong>writeRDS(R-object-name,file=“/data/filename.rds”)</strong> to write in the “data” subfolder.</p>
+<p>In the beginning of your program, you should use the function <strong>setwd(“path to data”)</strong> to the directory for your data - or to the directory for your project. This makes reference to datasets in your project easier. If you choose the directory of the project you can use relative paths to read and write in subfolders of your project such as <strong>saveRDS(R-object-name,file=“/data/filename.rds”)</strong> to write in the “data” subfolder.</p>
 </div>
 <div id="read-data" class="section level1">
 <h1>Read data</h1>
@@ -243,7 +243,7 @@ pre code {
 </div>
 <div id="save-data" class="section level1">
 <h1>Save data</h1>
-<p>The most efficient way to store datasets is as single object using <strong>writeRDS(name_of_object,file=“PathToFile.rds”)</strong>. If your working directory is the project directory and you want the object saved in the subdirectory “data” then use <strong>writeRDS(name_of_object,file=“/data/PathToFile.rds”)</strong>.</p>
+<p>The most efficient way to store datasets is as single object using <strong>saveRDS(name_of_object,file=“PathToFile.rds”)</strong>. If your working directory is the project directory and you want the object saved in the subdirectory “data” then use <strong>saveRDS(name_of_object,file=“/data/PathToFile.rds”)</strong>.</p>
 <p>If you need to output text files (ASCII) then use <strong>data.table::fwrite(name_of_object,file=“pathToFile.csv”)</strong>. This is useful if you want to use Excel and similar to produce tables. Most table are generated in programs as data.frame or data.table and after converting to a csv-object they can be read with Excel. Note that the <strong>fwrite</strong> function senses the details of output format from the file name you provide.</p>
 </div>
 <div id="view-your-data" class="section level1">
@@ -387,14 +387,14 @@ setkey(hospital.adm,pnr,rolldate) #the variables which define the match
 hospital.adm[disease,roll=-Inf]</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["admission.date"],"name":[1],"type":["date"],"align":["right"]},{"label":["pnr"],"name":[2],"type":["int"],"align":["right"]},{"label":["rolldate"],"name":[3],"type":["date"],"align":["right"]},{"label":["disease.date"],"name":[4],"type":["date"],"align":["right"]},{"label":["sex"],"name":[5],"type":["int"],"align":["right"]}],"data":[{"1":"2019-02-07","2":"1","3":"2018-06-08","4":"2018-06-08","5":"1"},{"1":"2019-05-03","2":"2","3":"2019-03-14","4":"2019-03-14","5":"2"},{"1":"2016-08-17","2":"3","3":"2015-05-24","4":"2015-05-24","5":"1"},{"1":"2018-07-01","2":"4","3":"2015-11-29","4":"2015-11-29","5":"2"},{"1":"2019-01-22","2":"5","3":"2017-04-11","4":"2017-04-11","5":"1"},{"1":"2020-12-23","2":"6","3":"2019-04-10","4":"2019-04-10","5":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["admission.date"],"name":[1],"type":["date"],"align":["right"]},{"label":["pnr"],"name":[2],"type":["int"],"align":["right"]},{"label":["rolldate"],"name":[3],"type":["date"],"align":["right"]},{"label":["disease.date"],"name":[4],"type":["date"],"align":["right"]},{"label":["sex"],"name":[5],"type":["int"],"align":["right"]}],"data":[{"1":"2018-04-03","2":"1","3":"2017-10-22","4":"2017-10-22","5":"1"},{"1":"2018-07-26","2":"2","3":"2018-07-11","4":"2018-07-11","5":"2"},{"1":"<NA>","2":"3","3":"2015-04-19","4":"2015-04-19","5":"1"},{"1":"2015-10-03","2":"4","3":"2015-08-08","4":"2015-08-08","5":"2"},{"1":"2015-12-08","2":"5","3":"2015-12-06","4":"2015-12-06","5":"1"},{"1":"2019-10-02","2":"6","3":"2019-06-01","4":"2019-06-01","5":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <pre class="r"><code># add the first hospital admission occuring after the disease date but within 1 year of disease
 hospital.adm[disease,roll=-364.25]</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["admission.date"],"name":[1],"type":["date"],"align":["right"]},{"label":["pnr"],"name":[2],"type":["int"],"align":["right"]},{"label":["rolldate"],"name":[3],"type":["date"],"align":["right"]},{"label":["disease.date"],"name":[4],"type":["date"],"align":["right"]},{"label":["sex"],"name":[5],"type":["int"],"align":["right"]}],"data":[{"1":"2019-02-07","2":"1","3":"2018-06-08","4":"2018-06-08","5":"1"},{"1":"2019-05-03","2":"2","3":"2019-03-14","4":"2019-03-14","5":"2"},{"1":"<NA>","2":"3","3":"2015-05-24","4":"2015-05-24","5":"1"},{"1":"<NA>","2":"4","3":"2015-11-29","4":"2015-11-29","5":"2"},{"1":"<NA>","2":"5","3":"2017-04-11","4":"2017-04-11","5":"1"},{"1":"<NA>","2":"6","3":"2019-04-10","4":"2019-04-10","5":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["admission.date"],"name":[1],"type":["date"],"align":["right"]},{"label":["pnr"],"name":[2],"type":["int"],"align":["right"]},{"label":["rolldate"],"name":[3],"type":["date"],"align":["right"]},{"label":["disease.date"],"name":[4],"type":["date"],"align":["right"]},{"label":["sex"],"name":[5],"type":["int"],"align":["right"]}],"data":[{"1":"2018-04-03","2":"1","3":"2017-10-22","4":"2017-10-22","5":"1"},{"1":"2018-07-26","2":"2","3":"2018-07-11","4":"2018-07-11","5":"2"},{"1":"<NA>","2":"3","3":"2015-04-19","4":"2015-04-19","5":"1"},{"1":"2015-10-03","2":"4","3":"2015-08-08","4":"2015-08-08","5":"2"},{"1":"2015-12-08","2":"5","3":"2015-12-06","4":"2015-12-06","5":"1"},{"1":"2019-10-02","2":"6","3":"2019-06-01","4":"2019-06-01","5":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
