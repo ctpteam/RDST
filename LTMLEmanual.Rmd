@@ -16,7 +16,7 @@ All basic information of time dependent variables is based on dates of events. T
 library(data.table)
 library(heaven)
 set.seed(21)
-n <- 10
+n <- 1000
 W <- rnorm(n) # A basaline variable
 ID<-1:n
 startDate<-as.Date("2010-01-01")+sample(0:365,n,replace=TRUE)
@@ -147,13 +147,15 @@ and appears to be in contrast with the manual where any value can appear later.
 setkeyv(longSplit,c("ID","period","inn"))
 # Max value of outcomes in each period
 longSplit[,':='(Y=max(Y),C=max(C),compete=max(compete)),by=c("ID","period")] 
-# Carry outcomes forward
+# Carry outcomes forward until end of observation
 setkeyv(longSplit,c("ID","inn"))
-longSplit[shift(Y)==1,Y:=1,by="ID"]
-longSplit[shift(C)==1,C:=1,by="ID"]
-longSplit[shift(compete)==1,compete:=1,by="ID"]
+longSplit[shift(Y)==1 & shift(ID)==ID,Y:=1]
+longSplit[shift(C)==1 & shift(ID)==ID,C:=1]
+longSplit[shift(compete)==1 & shift(ID)==ID,compete:=1]
 # Choose first record for each ID/period
 aggrSplit <- longSplit[,.SD[1],by=c("ID","period")]
+aggrSplit[,A:=as.numeric(A)]
+aggrSplit[,L3:=as.numeric(L3)]
 ```
 # Transpose to wide format
 ```{r echo=TRUE}
@@ -162,11 +164,20 @@ wideSplit <- dcast(aggrSplit,ID~period,value.var = c("A", "L1","L2","L3","Y", "C
 
 # LTMLE
 ```{r echo=TRUE}
-
+# Order variables
+W <- grep("^W",names(wideSplit))
+L <- grep("^L",names(wideSplit))
+A <- grep("^A",names(wideSplit))
+Y <- grep("^Y",names(wideSplit))
+C <- grep("^C",names(wideSplit))
+compete <- grep("^compete",names(wideSplit))
+neworder <- c()
+setcolorder(wideSplit,names(wideSplit)[c(1,compete,L,W,A,Y,C)])
 
 Anodes <- grep("^A",names(wideSplit))
 Lnodes <- grep("^L",names(wideSplit))
 Ynodes <- grep("^Y",names(wideSplit))
 Cnodes <- grep("^C",names(wideSplit))
-ltmle(wideSplit,Anodes=Anodes, Lnodes=Lnodes, Ynodes=Ynodes,Cnodes=Cnodes,abar=1)
+ltmle(wideSplit,Anodes=Anodes, Lnodes=Lnodes, Ynodes=Ynodes,Cnodes=Cnodes,abar=c(1,1,1,1),
+      survivalOutcome = TRUE)
 ```
