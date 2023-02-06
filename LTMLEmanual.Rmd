@@ -4,7 +4,7 @@
  date: "08-01-2023"
 ---
 
-The aim of this document is to provide practical advice on how to shqp typical observational data in order to conduct a longitudinal targeted maximum likelihood estimation (LTMLE) analysis.
+The aim of this document is to provide practical advice on how to structure typical observational data in order to conduct a longitudinal targeted maximum likelihood estimation (LTMLE) analysis.
  
 This practical manual is based on the data.table package and further the heaven package which is available on github/tagteam/heaven.
 
@@ -13,11 +13,16 @@ First we will create the basic data necessary for the analysis as they often are
 All basic information of time dependent variables is based on dates of events. The following block creates the data for this example
 
 ```{r echo=TRUE}
+
+#install.packages(c('data.table','devtools')) # install 'data.table' and 'devtools' if needed
+library(devtools)
 library(data.table)
+#install_github('tagteam/heaven') # install 'heaven' if needed
 library(heaven)
+
 set.seed(21)
 n <- 1000
-W <- rnorm(n) # A basaline variable
+W <- rnorm(n) # A baseline variable
 ID<-1:n
 startDate<-as.Date("2010-01-01")+sample(0:365,n,replace=TRUE)
 L1<-startDate+sample(0:365,n,replace=TRUE)
@@ -42,15 +47,8 @@ timeVarCov<-timeVarCov[!is.na(inTime) & !is.na(var),.(ID,var,inTime,outTime)]
 timeVarCov[,value:='1']
 ```
 
-
-
-
-
-
-
-
 To use this manual, the raw data should be formatted as three datasets. The
-first is contains the individual identification (ID), the date of entry
+first contains the individual identification (ID), the date of entry
 into the study (startDate), variables that are fixed at baseline (W) 
 and a dummy variable that should be either zero or one
 
@@ -59,20 +57,20 @@ base
 ```
 
 The second dataset includes dates of variables that only change once
-during follow-up.  This includes covariates such as diseases (L) and 
-also how folow-up ends in either outcome (Y), censoring (C) and competing
-risk (compete)
+during follow-up.  This includes covariates such as diseases (L) and information about  
+also how the follow-up ends in either outcome (Y), censoring (C) and competing
+event (compete)
 
 ```{r echo=TRUE}
 covariatesEvents
 ```
 
-The third dataset includes data for variables thay may change multiple times
-including multiple times for each individual.  For the example it includes a
+The third dataset includes data for variables that may change multiple times
+including multiple times for each individual.  For the present example it includes a
 third covariate (L3) and the treatment of interest (A). This dataset includes
-the identification (ID), a variables with the name of the time varying variable
-(var), start and end of each period (inn/out) and a variable (value) with the
-content "1" indicating "exposure"
+the identification (ID), a variable (var) where the levels correspond to the names of the time varying variable (i.e. 'L3' and 'A')
+, start and end of each period (inn/out) and a variable (value) with the
+content "1" indicating "exposure".
 
 ```{r echo=TRUE}
 timeVarCov
@@ -80,14 +78,14 @@ timeVarCov
 
 # Splitting by time varying events
 
-The first step is to fix the end time of the analysis LTMLE used a range of 
-time intervals of equal length and the same number of time intervals for all
+The first step is to fix the end time of the analysis. In LTMLE we use a range of 
+equally lengthened time intervals and the same number of time intervals is used for all
 individuals.
 
-For the example 4 time intervals of 180 days is chosen.
+For this example, we chose 4 time intervals of 180 days.
 
-As records are split it becomes confusing that the orginal startDate changes, wherefore
-a copy is made
+As we split the records it becomes confusing that the original startDate changes, wherefore
+a copy of the original startDate is made.
 
 ```{r echo=TRUE}
 base[,':='(inn=startDate,out=startDate+4*180)]
@@ -98,7 +96,7 @@ The data are next split by all time dependent variables and events. The order of
 splitting is not important.
 
 To split by the covariates and events where each is characterized by a single date 
-the heaven::lexisTwo function is used
+the heaven::lexisTwo function is used.
 
 ```{r echo=TRUE}
 longSplit <- lexisTwo(indat=base,
@@ -108,18 +106,18 @@ longSplit <- lexisTwo(indat=base,
 ```
 
 Next the data are split by the time dependent variables with potentially multiple
-changes during the study. heaven::lexisFromTo is used.
+changes during the study. We use the function heaven::lexisFromTo.
 
 ```{r echo=TRUE}
 longSplit <- lexisFromTo(indat=longSplit,
-                      splitdat=timeVarCov,
-                      invars=c('ID','inn','out','dummy'),
-                      splitvars = c('ID','inTime','outTime','value','var'))
+                         splitdat=timeVarCov,
+                         invars=c('ID','inn','out','dummy'),
+                         splitvars = c('ID','inTime','outTime','value','var'))
 ```
 
 Finally, the data are split by the selected time periods, in the current case
 four periods of 180 days. The new value 'period' contains the period number. This uses
-heaven::lexisSeq
+heaven::lexisSeq.
 
 ```{r echo=TRUE}
 longSplit <- lexisSeq(indat=longSplit,
