@@ -5,6 +5,8 @@
 ---
 
 The aim of this document is to provide practical advice on how to structure typical observational data in order to conduct a longitudinal targeted maximum likelihood estimation (LTMLE) analysis.
+
+Not that multiple outcomes can be managed simultaneously and multiple time periods can be managed by selecting the maximum time period.
  
 This practical manual is based on the data.table package and further the heaven package which is available on github/tagteam/heaven.
 
