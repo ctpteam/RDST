@@ -156,36 +156,82 @@ longSplit[shift(compete)==1 & shift(ID)==ID,compete:=1]
 aggrSplit <- longSplit[,.SD[1],by=c("ID","period")]
 aggrSplit[,A:=as.numeric(A)]
 aggrSplit[,L3:=as.numeric(L3)]
+# shift covariates one period up
+aggrSplit_cov <- aggrSplit[,.(ID,period,A,L3,L1,L2,W)]
+aggrSplit_cov[,period:=period-1]
+aggrSplit_out <- aggrSplit[,.(ID,period,C,Y,compete)]
 ```
 # Positivity table
 It is critical for this method that the positivity assumption of causal inference is held.
 Thus, for all covariates and all time intervals the probability of covariate presence needs to be
 below one and above zero.
 ```{r echo=TRUE}
-aggrSplit[,.(L1=sum(L1)/length(L1),L2=sum(L2)/length(L2)),by="period"]
+aggrSplit_cov[,.(L1=sum(L1)/length(L1),L2=sum(L2)/length(L2)),by="period"]
 ```
 
 # Transpose to wide format
 ```{r echo=TRUE}
-wideSplit <- dcast(aggrSplit,ID~period,value.var = c("A", "L1","L2","L3","Y", "C", "compete","W") )
+wideSplit_cov <- dcast(aggrSplit_cov,ID~period,value.var = c("A", "L1","L2","L3","W"))
+wideSplit_out <- dcast(aggrSplit_out,ID~period,value.var = c("Y", "C", "compete"))
+wideSplit <- cbind(wideSplit_cov,wideSplit_out[,ID:=NULL])
+```
+# Deterministic Q-function
+```{r, echo=T}
+det.Q.function<-function(data, current.node, nodes, called.from.estimate.g){
+    compete.index <- grep("compete",names(data))
+    ## if(length(compete.index)==0) det <- list(rep(TRUE,NROW(data)),Q.value=0)
+    ## stop("No compete/terminal event node found")
+    hist.compete.index <- compete.index[compete.index < current.node]
+    if(length(hist.compete.index)==0)
+      return(NULL)
+    else{
+      is.deterministic <- Reduce("+",lapply(data[,hist.compete.index,drop=FALSE],
+                                            function(dd){x=dd;x[is.na(dd)] <- 0;x}))>=1
+      is.deterministic[is.na(is.deterministic)] <- FALSE
+      list(is.deterministic=is.deterministic, Q.value=0)
+    }
+}
+    
 ```
 
-# LTMLE
 ```{r echo=TRUE}
-# Order variables
-W <- grep("^W",names(wideSplit))
-L <- grep("^L",names(wideSplit))
-A <- grep("^A",names(wideSplit))
-Y <- grep("^Y",names(wideSplit))
-C <- grep("^C",names(wideSplit))
-compete <- grep("^compete",names(wideSplit))
-neworder <- c()
-setcolorder(wideSplit,names(wideSplit)[c(1,compete,L,W,A,Y,C)])
+
+setcolorder(wideSplit,c("L1_0","L2_0","L3_0","W_0","A_0","C_1", "Y_1","L1_1","L2_1","L3_1","W_1","compete_1",
+                        "A_1", "C_2", "Y_2", "L1_2","L2_2","L3_2","W_2","compete_2",
+                        "A_2","C_3", "Y_3", "L1_3","L2_3","L3_3","W_3","compete_3", 
+                        "A_3", "C_4", "Y_4","compete_4"))
 
 Anodes <- grep("^A",names(wideSplit))
-Lnodes <- grep("^L",names(wideSplit))
+Lnodes <- c(grep("^L",names(wideSplit)),grep("^W",names(wideSplit)))
 Ynodes <- grep("^Y",names(wideSplit))
 Cnodes <- grep("^C",names(wideSplit))
-ltmle(wideSplit,Anodes=Anodes, Lnodes=Lnodes, Ynodes=Ynodes,Cnodes=Cnodes,abar=c(1,1,1,1),
-      survivalOutcome = TRUE)
+    
+ltmle(wideSplit,Anodes=Anodes, 
+          Lnodes=Lnodes, 
+          Ynodes=Ynodes,
+          Cnodes=Cnodes,
+          abar=c(1,1,1,1),
+          deterministic.Q.function = det.Q.function,
+          survivalOutcome = TRUE)
+    
 ```
+
+<!-- # LTMLE -->
+<!-- ```{r echo=TRUE} -->
+<!-- # Order variables -->
+<!-- W <- grep("^W",names(wideSplit)) -->
+<!-- L <- grep("^L",names(wideSplit)) -->
+<!-- A <- grep("^A",names(wideSplit)) -->
+<!-- Y <- grep("^Y",names(wideSplit)) -->
+<!-- C <- grep("^C",names(wideSplit)) -->
+<!-- compete <- grep("^compete",names(wideSplit)) -->
+<!-- neworder <- c() -->
+<!-- setcolorder(wideSplit,names(wideSplit)[c(1,compete,L,W,A,Y,C)]) -->
+
+<!-- Anodes <- grep("^A",names(wideSplit)) -->
+<!-- Lnodes <- grep("^L",names(wideSplit)) -->
+<!-- Ynodes <- grep("^Y",names(wideSplit)) -->
+<!-- Cnodes <- grep("^C",names(wideSplit)) -->
+<!-- ltmle(wideSplit,Anodes=Anodes, Lnodes=Lnodes, Ynodes=Ynodes,Cnodes=Cnodes,abar=c(1,1,1,1), -->
+<!--       survivalOutcome = TRUE) -->
+<!-- ``` -->
