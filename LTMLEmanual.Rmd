@@ -157,6 +157,14 @@ aggrSplit <- longSplit[,.SD[1],by=c("ID","period")]
 aggrSplit[,A:=as.numeric(A)]
 aggrSplit[,L3:=as.numeric(L3)]
 ```
+# Positivity table
+It is critical for this method that the positivity assumption of causal inference is held.
+Thus, for all covariates and all time intervals the probability of covariate presence needs to be
+below one and above zero.
+```{r echo=TRUE}
+aggrSplit[,.(L1=sum(L1)/length(L1),L2=sum(L2)/length(L2)),by="period"]
+```
+
 # Transpose to wide format
 ```{r echo=TRUE}
 wideSplit <- dcast(aggrSplit,ID~period,value.var = c("A", "L1","L2","L3","Y", "C", "compete","W") )
