@@ -10,6 +10,8 @@ Not that multiple outcomes can be managed simultaneously and multiple time perio
  
 This practical manual is based on the data.table package and further the heaven package which is available on github/tagteam/heaven.
 
+The manual is also hopefully based on a typical presentation of raw data.  
+
 # Raw data formatting
 First we will create the basic data necessary for the analysis as they often are available.
 All basic information of time dependent variables is based on dates of events. The following block creates the data for this example
@@ -21,6 +23,7 @@ library(devtools)
 library(data.table)
 #install_github('tagteam/heaven') # install 'heaven' if needed
 library(heaven)
+library(ltmle)
 
 set.seed(21)
 n <- 1000
@@ -30,7 +33,8 @@ startDate<-as.Date("2010-01-01")+sample(0:365,n,replace=TRUE)
 L1<-startDate+sample(0:365,n,replace=TRUE)
 L2<-startDate+sample(0:365,n,replace=TRUE)
 ebd <- pmax(L1,L2)+sample(0:180,n,replace=TRUE)
-base <- data.table(ID,startDate,dummy=1,W)
+base <- data.table(ID,startDate)
+fixed <- data.table(ID,W)
 select <- sample(1:3,n,replace=TRUE) # event, censor, competing
 covariatesEvents <- data.table(ID,L1,L2,select,ebd)
 covariatesEvents[select==3,Y:=ebd]
@@ -49,30 +53,38 @@ timeVarCov<-timeVarCov[!is.na(inTime) & !is.na(var),.(ID,var,inTime,outTime)]
 timeVarCov[,value:='1']
 ```
 
-To use this manual, the raw data should be formatted as three datasets. The
-first contains the individual identification (ID), the date of entry
-into the study (startDate), variables that are fixed at baseline (W) 
-and a dummy variable that should be either zero or one
+To use this manual, the raw data should be formatted as four datasets. The
+first contains the individual identification (ID) and the date of entry
+into the study (startDate). 
 
 ```{r echo=TRUE}
 base
 ```
+The second dataset includes the ID and fixed baseline covariate (W). Note that 
+baseline covariates can be both continuous and discrete whereas all time dependen
+variables need to be discrete.  For the current example there is a single continuous
+baseline variable (W), but there fcan be any number.
 
-The second dataset includes dates of variables that only change once
+```{r echo=TRUE}
+fixed
+```
+
+The third dataset includes dates of variables that only change once
 during follow-up.  This includes covariates such as diseases (L) and information about  
 also how the follow-up ends in either outcome (Y), censoring (C) and competing
-event (compete)
+event (compete).  The dataset to be presented includes these variables and the value
+of all variables is either the date where the change arrives or missing (NA)
 
 ```{r echo=TRUE}
 covariatesEvents
 ```
 
-The third dataset includes data for variables that may change multiple times
-including multiple times for each individual.  For the present example it includes a
+The fourth dataset includes data for variables that may change several or multiple multiple times
+including possibly multiple times for each individual.  For the present example it includes a
 third covariate (L3) and the treatment of interest (A). This dataset includes
 the identification (ID), a variable (var) where the levels correspond to the names of the time varying variable (i.e. 'L3' and 'A')
-, start and end of each period (inn/out) and a variable (value) with the
-content "1" indicating "exposure".
+as well as start and end of each period (inn/out) and a variable (value) with the
+content "1" indicating "exposure" contrasting to zero indicating no exposure.
 
 ```{r echo=TRUE}
 timeVarCov
@@ -80,40 +92,39 @@ timeVarCov
 
 # Splitting by time varying events
 
-The first step is to fix the end time of the analysis. In LTMLE we use a range of 
-equally lengthened time intervals and the same number of time intervals is used for all
-individuals.
+LTMLE operates with a sequence of time periods all of equal length.  Even though individuals may 
+experience event or be censored early all individuals need information for variables during the whole time of follow-up.
+Therefor, the first step is to fix the end time of the analysis. 
 
 For this example, we chose 4 time intervals of 180 days.
 
-As we split the records it becomes confusing that the original startDate changes, wherefore
-a copy of the original startDate is made.
+During the data preparation below records are split into multiple records and to avoid confusion with the original entry into analysis
+a new variable is dfined to hold the start date.
 
 ```{r echo=TRUE}
 base[,':='(inn=startDate,out=startDate+4*180)]
 ```
 
+The following steps have the purpose of defining levels of variables in each of the defined time periods. To start this proces all
+records are split according to timing of change in variable status.  The order of splitting is not important.
 
-The data are next split by all time dependent variables and events. The order of
-splitting is not important.
-
-To split by the covariates and events where each is characterized by a single date 
-the heaven::lexisTwo function is used.
+The first step is splitting by all variables that change only once.  This is performed with the heaven::splitTwo function that needs
+the original base data and a "splitting guide" which is the dataset with dates where variables that change only once are held.
 
 ```{r echo=TRUE}
-longSplit <- lexisTwo(indat=base,
+longSplit <- splitTwo(indat=base,
                       splitdat=covariatesEvents,
-                      invars=c('ID','inn','out','dummy'),
+                      invars=c('ID','inn','out'),
                       splitvars = c('ID',"L1","L2","Y","C","compete"))
 ```
 
 Next the data are split by the time dependent variables with potentially multiple
-changes during the study. We use the function heaven::lexisFromTo.
+changes during the study. We use the function heaven::splitFromTo.
 
 ```{r echo=TRUE}
-longSplit <- lexisFromTo(indat=longSplit,
+longSplit <- splitFromTo(indat=longSplit,
                          splitdat=timeVarCov,
-                         invars=c('ID','inn','out','dummy'),
+                         invars=c('ID','inn','out'),
                          splitvars = c('ID','inTime','outTime','value','var'))
 ```
 
@@ -122,8 +133,8 @@ four periods of 180 days. The new value 'period' contains the period number. Thi
 heaven::lexisSeq.
 
 ```{r echo=TRUE}
-longSplit <- lexisSeq(indat=longSplit,
-                      invars=c('ID','inn','out','dummy'),
+longSplit <- splitSeq(indat=longSplit,
+                      invars=c('ID','inn','out'),
                       varname = 'startDate', # intervals since inclusion in study
                       splitvector= c(-1,180,360,540,720), # four periods of 180 days
                       format = "vector",
@@ -131,17 +142,25 @@ longSplit <- lexisSeq(indat=longSplit,
 ```
 
 # Aggregate in time periods
+With the splitting complete all information for each selected equally sized time period (in the example four)
+is separated.
+The next step is then to summarize information by 'period'. The outcomes (event,
+censoring, competing risk) needs to be the maximal outcome for each period since an outcome
+event is coded "1" as opposed to "0" when not occurring.  
 
-The next step is to summarize information by 'period'. The outcomes (event,
-censoring, competing risk) needs to be the mal observation in each period (max is outcome).  
 For other variables it is dependent on a discussion whether to choose the entry values
 for each period or choose any indication of exposure during the period. For this
-example the entry is chosen for each period for covariates and the maximal
-for outcomes.
+example the entry is chosen for each period for covariates. 
 
 Also when an event has happened during a period the value of that event needs to
-be carried forward to the end of observation time.  This last is made from advice 
+be carried forward to the rest of periods until end of observation time.  This last is made from advice 
 and appears to be in contrast with the manual where any value can appear later.
+
+For the calculations the covariate (as opposed to outcomes) need to be moved one period back in time. This
+ensures that covariate values are always prior to outcome. Conceptually covariate values can be viewed as the last value during
+the preceding time period.
+
+
 
 ```{r echo=TRUE}
 setkeyv(longSplit,c("ID","period","inn"))
@@ -157,25 +176,30 @@ aggrSplit <- longSplit[,.SD[1],by=c("ID","period")]
 aggrSplit[,A:=as.numeric(A)]
 aggrSplit[,L3:=as.numeric(L3)]
 # shift covariates one period up
-aggrSplit_cov <- aggrSplit[,.(ID,period,A,L3,L1,L2,W)]
+aggrSplit_cov <- aggrSplit[,.(ID,period,A,L3,L1,L2)]
 aggrSplit_cov[,period:=period-1]
-aggrSplit_out <- aggrSplit[,.(ID,period,C,Y,compete)]
+aggrSplit_out <- aggrSplit[,.(ID,period,compete,C,Y)]
 ```
-# Positivity table
-It is critical for this method that the positivity assumption of causal inference is held.
-Thus, for all covariates and all time intervals the probability of covariate presence needs to be
-below one and above zero.
+# Summarizing presence of data
+The positivity assumption requires that the propensity of covariate presence is above zero and
+below one in each period. A preliminary test is simply to tabulate the presence of covariates in each
+period.
+
 ```{r echo=TRUE}
 aggrSplit_cov[,.(L1=sum(L1)/length(L1),L2=sum(L2)/length(L2)),by="period"]
 ```
 
 # Transpose to wide format
 ```{r echo=TRUE}
-wideSplit_cov <- dcast(aggrSplit_cov,ID~period,value.var = c("A", "L1","L2","L3","W"))
-wideSplit_out <- dcast(aggrSplit_out,ID~period,value.var = c("Y", "C", "compete"))
+wideSplit_cov <- dcast(aggrSplit_cov,ID~period,value.var = c("A", "L1","L2","L3"))
+wideSplit_out <- dcast(aggrSplit_out,ID~period,value.var = c("compete","C","Y"))
 wideSplit <- cbind(wideSplit_cov,wideSplit_out[,ID:=NULL])
+# Finally add the baseline covariates
+wideSplit <- merge(fixed,wideSplit,by="ID")
 ```
 # Deterministic Q-function
+The deterministic Q function can be employed for a variety of purposes. In 
+the crrent form it interpretes the "compete" covariate as a competing risk.
 ```{r, echo=T}
 det.Q.function<-function(data, current.node, nodes, called.from.estimate.g){
     compete.index <- grep("compete",names(data))
@@ -193,18 +217,12 @@ det.Q.function<-function(data, current.node, nodes, called.from.estimate.g){
 }
     
 ```
-
+#LTMLE
 ```{r echo=TRUE}
-
-setcolorder(wideSplit,c("L1_0","L2_0","L3_0","W_0","A_0","C_1", "Y_1","L1_1","L2_1","L3_1","W_1","compete_1",
-                        "A_1", "C_2", "Y_2", "L1_2","L2_2","L3_2","W_2","compete_2",
-                        "A_2","C_3", "Y_3", "L1_3","L2_3","L3_3","W_3","compete_3", 
-                        "A_3", "C_4", "Y_4","compete_4"))
-
-Anodes <- grep("^A",names(wideSplit))
-Lnodes <- c(grep("^L",names(wideSplit)),grep("^W",names(wideSplit)))
-Ynodes <- grep("^Y",names(wideSplit))
-Cnodes <- grep("^C",names(wideSplit))
+Anodes <- sort(grep("^A",names(wideSplit)))
+Lnodes <- sort(c(grep("^L",names(wideSplit)),grep("^W",names(wideSplit)),grep("^compete_",names(wideSplit))))
+Ynodes <- sort(grep("^Y",names(wideSplit)))
+Cnodes <- sort(grep("^C",names(wideSplit)))
     
 ltmle(wideSplit,Anodes=Anodes, 
           Lnodes=Lnodes, 
@@ -213,8 +231,7 @@ ltmle(wideSplit,Anodes=Anodes,
           abar=c(1,1,1,1),
           deterministic.Q.function = det.Q.function,
           survivalOutcome = TRUE)
-    
-```
+    ```
 
 <!-- # LTMLE -->
 <!-- ```{r echo=TRUE} -->
