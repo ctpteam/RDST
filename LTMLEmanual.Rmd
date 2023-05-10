@@ -26,7 +26,7 @@ library(heaven)
 library(ltmle)
 
 set.seed(21)
-n <- 1000
+n <- 30
 W <- rnorm(n) # A baseline variable
 ID<-1:n
 startDate<-as.Date("2010-01-01")+sample(0:365,n,replace=TRUE)
@@ -35,21 +35,24 @@ L2<-startDate+sample(0:365,n,replace=TRUE)
 ebd <- pmax(L1,L2)+sample(0:180,n,replace=TRUE)
 base <- data.table(ID,startDate)
 fixed <- data.table(ID,W)
+A <- sample(0:1,n,replace=TRUE)
 select <- sample(1:3,n,replace=TRUE) # event, censor, competing
-covariatesEvents <- data.table(ID,L1,L2,select,ebd)
-covariatesEvents[select==3,Y:=ebd]
+covariatesEvents <- data.table(ID,A,L1,L2,select,ebd)
+covariatesEvents[select==3 | A==1,Y:=ebd] # A is really dangerous
 covariatesEvents[select==2,C:=ebd]
 covariatesEvents[select==1,compete:=ebd]
-covariatesEvents[,c("select","ebd"):=NULL]
+covariatesEvents[,c("select","ebd","A"):=NULL]
 select2 <- sample(1:2,n,replace=TRUE)
 select3 <- sample(1:2,n,replace=TRUE)
-timeVarCov <- data.table(ID,select2,startDate)
-timeVarCov[select2==1,':='(inTime=startDate,outTime=startDate+sample(0:720,1),var='L3')]
-timeVarCov[select2==2,':='(inTime=startDate+75,outTime=startDate+75+sample(0:720,1))]
-timeVarCov2 <- data.table(ID,select3,startDate)
-timeVarCov2[select3==1,':='(inTime=startDate,outTime=startDate+sample(180:720,1),var='A')]
-timeVarCov<-rbind(timeVarCov,timeVarCov2,fill=TRUE)
-timeVarCov<-timeVarCov[!is.na(inTime) & !is.na(var),.(ID,var,inTime,outTime)]
+
+L3 <- sample(0:1,n,replace=TRUE)
+timeVarCov <- data.table(ID,A,L3,select2,startDate)
+timeVarCov2 <- timeVarCov[A==1]
+timeVarCov2[,':='(inTime=startDate,outTime=startDate+180+sample(0:365,1),var='A')]
+timeVarCov3 <- timeVarCov[L3==1]
+timeVarCov3[,':='(inTime=startDate,outTime=startDate+sample(366:720,1),var='L3')]
+timeVarCov <- rbind(timeVarCov2,timeVarCov3)
+timeVarCov <- timeVarCov[!is.na(inTime),.(ID,inTime,outTime,var)]
 timeVarCov[,value:='1']
 ```
 
@@ -224,7 +227,7 @@ Lnodes <- sort(c(grep("^L",names(wideSplit)),grep("^W",names(wideSplit)),grep("^
 Ynodes <- sort(grep("^Y",names(wideSplit)))
 Cnodes <- sort(grep("^C",names(wideSplit)))
     
-ltmle(wideSplit,Anodes=Anodes, 
+fit <- ltmle(wideSplit,Anodes=Anodes, 
           Lnodes=Lnodes, 
           Ynodes=Ynodes,
           Cnodes=Cnodes,
