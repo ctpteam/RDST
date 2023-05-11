@@ -6,14 +6,14 @@
 
 The aim of this document is to provide practical advice on how to structure typical observational data in order to conduct a longitudinal targeted maximum likelihood estimation (LTMLE) analysis.
 
-Not that multiple outcomes can be managed simultaneously and multiple time periods can be managed by selecting the maximum time period.
+Note that multiple outcomes can be managed simultaneously and multiple time periods can be managed by selecting the maximum time period.
  
 This practical manual is based on the data.table package and further the heaven package which is available on github/tagteam/heaven.
 
 The manual is also hopefully based on a typical presentation of raw data.  
 
 # Raw data formatting
-First we will create the basic data necessary for the analysis as they often are available.
+First we will create the basic data structure necessary for the analysis.
 All basic information of time dependent variables is based on dates of events. The following block creates the data for this example
 
 ```{r echo=TRUE}
@@ -22,7 +22,7 @@ All basic information of time dependent variables is based on dates of events. T
 library(devtools)
 library(data.table)
 #install_github('tagteam/heaven') # install 'heaven' if needed
-library(heaven)
+#library(heaven)
 library(ltmle)
 
 set.seed(21)
@@ -64,30 +64,30 @@ into the study (startDate).
 base
 ```
 The second dataset includes the ID and fixed baseline covariate (W). Note that 
-baseline covariates can be both continuous and discrete whereas all time dependen
-variables need to be discrete.  For the current example there is a single continuous
-baseline variable (W), but there fcan be any number.
+baseline covariates can be both continuous and discrete whereas all time dependent
+variables need to be discrete. For the current example there is a single continuous
+baseline variable (W), but there can be any number.
 
 ```{r echo=TRUE}
 fixed
 ```
 
 The third dataset includes dates of variables that only change once
-during follow-up.  This includes covariates such as diseases (L) and information about  
-also how the follow-up ends in either outcome (Y), censoring (C) and competing
-event (compete).  The dataset to be presented includes these variables and the value
-of all variables is either the date where the change arrives or missing (NA)
+during follow-up. This includes covariates such as diseases (L) and information 
+about when and how the follow-up ends in either outcome (Y), censoring (C), and competing
+event (compete). The dataset to be presented includes these variables and the value
+of all variables is either the date of the change or missing (NA).
 
 ```{r echo=TRUE}
 covariatesEvents
 ```
 
-The fourth dataset includes data for variables that may change several or multiple multiple times
-including possibly multiple times for each individual.  For the present example it includes a
-third covariate (L3) and the treatment of interest (A). This dataset includes
-the identification (ID), a variable (var) where the levels correspond to the names of the time varying variable (i.e. 'L3' and 'A')
-as well as start and end of each period (inn/out) and a variable (value) with the
-content "1" indicating "exposure" contrasting to zero indicating no exposure.
+The fourth dataset includes data for variables that may change multiple times.
+For the present example it includes a third covariate (L3) and the treatment of interest (A). 
+This dataset includes the identification (ID), a variable (var) where the levels 
+correspond to the names of the time varying variable (i.e. 'L3' and 'A') as well
+as start and end of each period (inTime/outTime) and a variable (value) with levels
+"1" indicating "exposure" and "0" indicating "no exposure".
 
 ```{r echo=TRUE}
 timeVarCov
@@ -95,24 +95,29 @@ timeVarCov
 
 # Splitting by time varying events
 
-LTMLE operates with a sequence of time periods all of equal length.  Even though individuals may 
-experience event or be censored early all individuals need information for variables during the whole time of follow-up.
-Therefor, the first step is to fix the end time of the analysis. 
+LTMLE operates with a sequence of time periods all of equal length. Even though 
+individuals may experience the event or be censored early, all individuals need
+information for variables during the whole time of follow-up. Therefore, the first
+step is to fix the end time of the analysis. 
 
-For this example, we chose 4 time intervals of 180 days.
+For this example, we chose four time intervals of 180 days.
 
-During the data preparation below records are split into multiple records and to avoid confusion with the original entry into analysis
-a new variable is dfined to hold the start date.
+During the data preparation below, records are split into multiple records and 
+to avoid confusion with the original entry into analysis, a new variable is 
+defined informing the start date.
 
 ```{r echo=TRUE}
 base[,':='(inn=startDate,out=startDate+4*180)]
 ```
 
-The following steps have the purpose of defining levels of variables in each of the defined time periods. To start this proces all
-records are split according to timing of change in variable status.  The order of splitting is not important.
+The following steps have the purpose of defining levels of variables in each of 
+the defined time periods. To start this proces all records are split according 
+to timing of change in variable status. The order of splitting is not important.
 
-The first step is splitting by all variables that change only once.  This is performed with the heaven::splitTwo function that needs
-the original base data and a "splitting guide" which is the dataset with dates where variables that change only once are held.
+The first step is splitting by all variables that change only once. 
+This is performed with the heaven::splitTwo function that needs the original 
+base data and a "splitting guide" which is the dataset with dates where variables
+that change only once are held.
 
 ```{r echo=TRUE}
 longSplit <- splitTwo(indat=base,
@@ -121,7 +126,7 @@ longSplit <- splitTwo(indat=base,
                       splitvars = c('ID',"L1","L2","Y","C","compete"))
 ```
 
-Next the data are split by the time dependent variables with potentially multiple
+Next the data is split by the time dependent variables with potentially multiple
 changes during the study. We use the function heaven::splitFromTo.
 
 ```{r echo=TRUE}
@@ -131,7 +136,7 @@ longSplit <- splitFromTo(indat=longSplit,
                          splitvars = c('ID','inTime','outTime','value','var'))
 ```
 
-Finally, the data are split by the selected time periods, in the current case
+Finally, the data is split by the selected time periods, in the current case
 four periods of 180 days. The new value 'period' contains the period number. This uses
 heaven::lexisSeq.
 
@@ -145,24 +150,28 @@ longSplit <- splitSeq(indat=longSplit,
 ```
 
 # Aggregate in time periods
-With the splitting complete all information for each selected equally sized time period (in the example four)
-is separated.
-The next step is then to summarize information by 'period'. The outcomes (event,
-censoring, competing risk) needs to be the maximal outcome for each period since an outcome
-event is coded "1" as opposed to "0" when not occurring.  
 
-For other variables it is dependent on a discussion whether to choose the entry values
+With the splitting complete, all information for each selected equally sized time period 
+(in the example four) is separated.
+
+The next step is then to summarize information by 'period'. 
+
+The outcomes (event, censoring, competing risk) should be the maximal outcome for each period since an outcome event is coded "1" as opposed to "0" when not occurring.  
+
+For other variables, it is dependent on a discussion whether to choose the entry values
 for each period or choose any indication of exposure during the period. For this
-example the entry is chosen for each period for covariates. 
+example the entry value is chosen for each period for covariates. 
 
-Also when an event has happened during a period the value of that event needs to
-be carried forward to the rest of periods until end of observation time.  This last is made from advice 
-and appears to be in contrast with the manual where any value can appear later.
+Importantly, the data structure for running LTMLE requires that when an event has
+happened during a period, the value of that event needs to be carried forward to the
+rest of periods until end of observation time.  
 
-For the calculations the covariate (as opposed to outcomes) need to be moved one period back in time. This
-ensures that covariate values are always prior to outcome. Conceptually covariate values can be viewed as the last value during
-the preceding time period.
+This last step is performed based on experience with the package, and appears 
+to be in contrast with the LTMLE manual where any value can appear later.
 
+For the calculations, the covariates (as opposed to outcomes) need to be moved 
+one period back in time. This ensures that covariate values are always prior to outcome. 
+Conceptually covariate values can be viewed as the last value during the preceding time period.
 
 
 ```{r echo=TRUE}
@@ -178,14 +187,17 @@ longSplit[shift(compete)==1 & shift(ID)==ID,compete:=1]
 aggrSplit <- longSplit[,.SD[1],by=c("ID","period")]
 aggrSplit[,A:=as.numeric(A)]
 aggrSplit[,L3:=as.numeric(L3)]
-# shift covariates one period up
+# shift covariates one period back 
 aggrSplit_cov <- aggrSplit[,.(ID,period,A,L3,L1,L2)]
 aggrSplit_cov[,period:=period-1]
 aggrSplit_out <- aggrSplit[,.(ID,period,compete,C,Y)]
 ```
+
 # Summarizing presence of data
-The positivity assumption requires that the propensity of covariate presence is above zero and
-below one in each period. A preliminary test is simply to tabulate the presence of covariates in each
+
+The positivity assumption requires that the propensity of the covariate presence 
+is above zero and below one in each period. 
+A preliminary test is simply to tabulate the presence of covariates in each
 period.
 
 ```{r echo=TRUE}
@@ -200,9 +212,12 @@ wideSplit <- cbind(wideSplit_cov,wideSplit_out[,ID:=NULL])
 # Finally add the baseline covariates
 wideSplit <- merge(fixed,wideSplit,by="ID")
 ```
+
 # Deterministic Q-function
-The deterministic Q function can be employed for a variety of purposes. In 
-the crrent form it interpretes the "compete" covariate as a competing risk.
+
+The deterministic Q function can be employed for a variety of purposes. Centrally 
+for our example, it interprets the "compete" covariate as a competing risk.
+
 ```{r, echo=T}
 det.Q.function<-function(data, current.node, nodes, called.from.estimate.g){
     compete.index <- grep("compete",names(data))
@@ -220,8 +235,12 @@ det.Q.function<-function(data, current.node, nodes, called.from.estimate.g){
 }
     
 ```
+
 #LTMLE
-```{r echo=TRUE}
+What is left is to run the LTMLE analysis, and more information on this function exists: 
+https://cran.r-project.org/web/packages/ltmle/ltmle.pdf
+
+```{r echo=TRUE, message=F,warning=F}
 Anodes <- sort(grep("^A",names(wideSplit)))
 Lnodes <- sort(c(grep("^L",names(wideSplit)),grep("^W",names(wideSplit)),grep("^compete_",names(wideSplit))))
 Ynodes <- sort(grep("^Y",names(wideSplit)))
@@ -232,9 +251,13 @@ fit <- ltmle(wideSplit,Anodes=Anodes,
           Ynodes=Ynodes,
           Cnodes=Cnodes,
           abar=c(1,1,1,1),
-          deterministic.Q.function = det.Q.function,
+          deterministic.Q.function = det.Q.function, #defined above
           survivalOutcome = TRUE)
+
+print(summary(fit))
     ```
+
+[Example of interpretation of estimates?]
 
 <!-- # LTMLE -->
 <!-- ```{r echo=TRUE} -->
