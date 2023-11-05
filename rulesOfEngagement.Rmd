@@ -25,7 +25,12 @@ Programs should always be generously commented on, but it is also necessary that
 Comments in programs are particularly dangerous.  If-then structures can be searched, but identifying microdata in comments is not generally searchable.
 
 Rules are sometimes violated. If you for some reason have had a habit of making comments or other activities that could disclose microdata - then you may not export your programs. Cleaning them prior to export is hazardous, since you may forget just one illegal comment.
-Servers
+
+# Penalties
+It has been a general observation that minor violations are very often caught when checking data prior to export. This creates an impression that the responsibility is that of the exporter rather than the requesting person.  To create equal  sense of responsibility it is therefore a rule that any minor violations causes that user to sustain a 30 day pause for any export.
+
+# Servers
+
 Our network currently has 4 operating servers numbered 3-6.  Servers 3 and 6 are back-up servers and available for use, but generally we advise not to use them.  Servers 4 and 5 are large and program updates etc. are prioritized for these servers.  Therefore only use servers 4 and 5.
 
 # Drives, data, programs
@@ -40,9 +45,9 @@ There are a number of drives that are shared between our servers.  Of these driv
 * Adhere to the advice in the document "Good programming Practice".
 * Currently SAS, R and STATA are available. Avoid STATA as it may soon disappear.
 
-# Exporting
+# Exporting results
 * On V and on Z there is a folder named *“mail”*.  In one of these folders you need to create a subfolder with your email address as name. Place any files you want exported here.  Note that csv-files are not allowed for some reason so change them to txt-files or save them as excel files. The reason we require this step is that it provides extra insurance that the files exported are also the files that are checked for microdata.
-* Do not export long lists of raw output.  Finish your data while on DST so that only final tables and graphs are exported. This rule is to make it feasible to check the data carefully.
+* Do not export long lists of raw output.  Finish your data while on DST so that only final tables and graphs are exported. This rule is to make it feasible to check the data carefully.  An office package is available on the serverse for this use.
 * When exports are ready you can mail a person with export permission to check the data prior to export.  If you have export permission you should not export yourself, but ask another, such that all exports are checked by two people.
 * The exporter releases the files to DDV and you can then access them for download.
 * Finally you should clear your mail-subfolder.
@@ -50,9 +55,12 @@ There are a number of drives that are shared between our servers.  Of these driv
 
 # Exporting programs 
 Programs can be exported or moved to other project folders.  These two procedures are both considered exporting by Statistics Denmark and both are subject to the draconic penalties used.  Therefore we are amploying very strict rules resulting from the fact that the rules in "goodProgrammingPractice" cannot be assumed followed in the pase.
-* In general programs should neither be moved or exported.  When absolutely necessary at least three people should check the proram and one of these should be from the network steering committee.  This ensures that extreme care is taken
+* In general programs should neither be moved or exported.  When absolutely necessary at least three people should check the proram and one of these should be from the network steering committee.  This ensures that extreme care is taken to ensure against microdata.
+* We ensure that programs are made accessable even for old inactive projects
 
 # Data and programs for all
 The *V\data\alle* folder is accessible from all projects and can only be modified by DST.
 A number of datasets without reference to individuals are available in this folder. Many will benefit from the presence of text codes for ICD8/10, details of medication based on vnr (varenummer).
+
+
  
