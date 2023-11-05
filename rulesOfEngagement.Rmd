@@ -29,8 +29,7 @@ Our network currently has 4 operating servers numbered 3-6.  Servers 3 and 6 are
 
 # Drives, data, programs
 There are a number of drives that are shared between our servers.  Of these drives you should only use and know *X*, *V* and *Z*.
-
-* *X* is for raw data and user data cannot be placed here.  As our projects become updated to DDV (Danmarks Data Vindue) all projects will have a similar basic data structure that is described in the document *Basic_project_data_structure.pdf* which you find on www.dst.heart.dk/girhub/programming guidance.  
+* *X* is for raw data and user data cannot be placed here.  As our projects become updated to DDV (Danmarks Data Vindue) all projects will have a similar basic data structure that is described in the document *Basic_project_data_structure.pdf* which you find on www.dst.heart.dk/github/programming guidance.  
 * *V* and *Z* drives are for user data, and the following needs to be adhered to:
 * Create a folder containing your full name and avoid blanks in the name using either underscore or camel case.  The full name is necessary if we need to contact you, typically because of excessive disk use.
 * Create a subfolder for each paper/report you work on
@@ -51,6 +50,31 @@ Programs can be exported or moved to other project folders.  These two procedure
 * In general programs should neither be moved or exported.  When absolutely necessary at least three people should check the proram and one of these should be from the network steering committee.  This ensures that extreme care is taken to ensure against microdata.
 * We ensure that programs are made accessable even for old inactive projects
 
+# Search strings for R and SAS
+When programs need to be exported (or moved to another project) it is important not to rely on just visual guidance to avoid microdata.  The following search strings can be used. These are "regular expressions" and a good way to use them is from the Rstudio editor (also for SAS programs). When using the search facility you can tick the "Regex" option.  
+
+The following regex pattern looks for “pnr =”, “pnr=”, “pnr !” and “pnr!” (indicative of making logic depending on pnr numbers):
+```{r eval=FALSE}
+pnr\s*=\s*|pnr\s*!\s*
+```
+The following regex pattern looks for 10 consecutive numbers (indicative of a pnr number):
+```{r eval=FALSE}
+\d{10}
+```
+The following regex pattern looks for 10 consecutive letters or numbers (indicative of the special case of pnr numbers where there are missing values - note: this yields many false positives):
+```{r eval=FALSE}
+[A-Za-z0-9]{10}
+```
+The following regex pattern looks for places where you’ve written “1, 2, 3, one, two, three, en, to, tre” prefixed by a space and suffixed by a space, period or a comma (indicative of describing single patients in your script - note: may also yield false positives):
+```{r eval=FALSE}
+(?<=\s)1(?=[\s.,])|(?<=\s)2(?=[\s.,])|(?<=\s)3(?=[\s.,])|(?<=\s)one(?=[\s.,])|(?<=\s)two(?=[\s.,])|(?<=\s)three(?=[\s.,])|(?<=\s)en(?=[\s.,])|(?<=\s)to(?=[\s.,])|(?<=\s)tre(?=[\s.,])
+```
+
+# Search strings for SAS
+The following regex pattern looks for “pnr =”, “pnr=”, “pnr !” and “pnr!”, "pnr eq", "pnr ne" (indicative of making logic depending on pnr numbers).
+```{r eval=FALSE}
+pnr\s*=\s*|pnr\s*!\s*|pnr\s*eq|pnr\s*ne
+```
 # Data and programs for all
 The *V\\data\\alle* folder is accessible from all projects and can only be modified by DST.
 A number of datasets without reference to individuals are available in this folder. Many will benefit from the presence of text codes for ICD8/10, details of medication based on vnr (varenummer).
