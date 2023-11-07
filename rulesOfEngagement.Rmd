@@ -50,7 +50,7 @@ There are a number of drives that are shared between our servers.  Of these driv
 * When exporting data, do not assume that the person with the export license has the responsibility of ensuring against microdata.  It is first of all the owner of the files that needs to ensure against microdata.
 
 # Exporting programs 
-Programs can be exported or moved to other project folders. These two procedures are both considered exporting by Statistics Denmark and both are subject to the draconian penalties used. Therefore we are employing very strict rules resulting from the fact that the rules in "goodProgrammingPractice" cannot be assumed followed in the paste.
+Programs can be exported or moved to other project folders. These two procedures are both considered exporting by Statistics Denmark and both are subject to the draconian penalties used. Therefore we are employing very strict rules resulting from the fact that the rules in "goodProgrammingPractice" cannot be assumed followed in the past.
 
 * In general programs should neither be moved or exported. When absolutely necessary, at least three people should check the program and one of these should be from the network steering committee ("the elders"). This ensures that extreme care is taken to ensure against microdata.
 * We ensure that programs are made accessible even for old inactive projects.

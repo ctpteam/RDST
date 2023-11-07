@@ -16,7 +16,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Preable
+# Preamble
 This document sets up rules for programming in the research environment of Statistics Denmark. Some of the rules are not relevant elsewhere.  The rules in this particular document are not specific to choice of program and equally relevant to users of R, SAS and STATA. Adherence to these rules protect our environment from microdata violations, ease bug finding and ease collaboration.
 
 # Security first
