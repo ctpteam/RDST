@@ -3,8 +3,9 @@ title: "Rules of Engagement for Statistics Denmark - www.heart.dk"
 author: "Christian Torp-Pedersen"
 date: "2023-11-04"
 output:
-  pdf_document: default
-  html_document: default
+  pdf_document:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
