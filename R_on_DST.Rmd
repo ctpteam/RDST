@@ -5,11 +5,12 @@ author:
 - Christian Torp-Pedersen
 - Kathrine Kold Sørensen
 - Amalie Lykkemark Møller
+- Filip Gnesin
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
-  html_document:
-    df_print: paged
-  pdf_document: default
+  pdf_document:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
@@ -31,12 +32,12 @@ Statistics Denmark is a closed environment and all packages available are pre-in
 
 Most R programs start with a list of **library()** statements to provide connection with functions in selected packages. Another possibility is to provide both the package name and the function name for a call. In this document we will try consitently to use the latter convention to show which packages needs to be included in a program. For standard use library statements should be the rule.  The function 'thisFunction()' in 'thisPackage' is in this document shown as **thisPackage::thisFunction()**. The exception to that rule is the package **data.table** where many functions cannot be shown indirectly.
 
-# Housekeeping rules
-
-In general there are multiple ways of reaching the target of a project.  The suggestions in this document are not rules to be followed, but reflect experience after many years of working in the particular environment. Suggestions for improvement are always welcome.
-
 Most R programs start with a list of **library()** statements to provide connection with functions in selected packages. Another possibility is to provide both the package name and the function name for a call. In this document we will try consitently to use the latter convention to show which packages needs to be included in a program. For standard use library statements should be the rule.  The function thisFunction() in thisPackage is in this document shown as **thisPackage::thisFunction()**. The exception to that rule is the package **data.table** where
 It is important to structure the data of a project in such a way that a logic is maintained - and also a logic which can be identified by others. In the common circumstance that help is required by others this logic is tested. It should also be noted that a scientific project can later be criticized and require a need to document how a result was obtained. In this situation a logical structure of the project is necessary when the programs need to be rerun years later.
+
+# Housekeeping 
+
+In general there are multiple ways of reaching the target of a project.  We encourage to use the suggestions in the document "Good Programming Practice".
 
 ## Memory use
 
@@ -224,7 +225,6 @@ hospital.adm[disease,roll=-Inf]
 hospital.adm[disease,roll=-364.25]
 ```
 
-
 ## Summary statistics
 It is common that You need to create datasets that are summary statistics of other datasets. Data.table has a strong interface for this: **DT2 <- DT[,.(mean=mean(var1),number=length(var1), max=max(var1)), by="grouping_variable"]**. This statement will calculate the mean and the max for each level of the grouping variable. In this statement the "." just before the parenthesis is short for "list".  
 
@@ -308,6 +308,75 @@ rbindlist(lapply(DT[,number],function(x){ # the function being defined right her
 }))
 
 ```
+
+# Brief introduction to Targets 
+
+A script-based approach to data management and analysis has been a common practice, often involving a series of numbered scripts that need to be executed in a specific order to reproduce the desired results. 
+
+However, this approach can lead to challenges in managing dependencies, ensuring that downstream results reflect any changes in upstream data or code, and encouraging efficient coding practices. The Targets package offers a solution to these issues by streamlining function-driven pipelines, making it easier to handle dependencies and streamline complex data workflows.
+
+One effective way to initiate the use of the Targets package is by following these steps: 
+
+1. First loading the package with **library(targets)**
+2. Then setting the working directory using **setwd()**
+3. Then executing the command **use_targets()** in the R console 
+
+This sequence of actions sets up the necessary directory structure in the specified working directory. The package creates an initial script named _targets.R, which serves as the foundation for building the data analysis pipeline.
+
+Below is an example illustrating the application of the Targets package:
+
+```{r,warning=FALSE}
+# Install required packages if not already installed
+if (!requireNamespace("targets", quietly = TRUE)) {
+  install.packages("targets")
+}
+
+# Load the necessary packages
+library(targets)
+
+# Define functions to be used within the pipeline
+tar_option_set(
+  packages = c("knitr", "ggplot2") # add packages 
+)
+
+# Define the target functions
+create_data <- function(){
+  data <- data.frame(
+    x = runif(100),
+    y = rnorm(100)
+  )
+}
+
+# Define the pipeline
+invisible(list(
+tar_target(data,create_data()),
+tar_target(plot,{
+  ggplot(data, aes(x = x, y = y)) + geom_point()
+})
+))
+
+#invisible to suppress output, not necessary normally 
+
+```
+
+The provided simple example shows a very short pipeline, comprising two steps, which can be extended endlessly to accommodate complex analyses. The pipeline is executed by running **tar_make()** in the console. One of the main time saving aspects of Targets is that when running **tar_make**, any changes to the pipeline are detected and only objects that that are outdated are updated.  
+
+Context specific decision in setting up the pipeline involves considering factors such as the extent of inclusion of results and sensitivity analyses in the pipeline, determining whether to integrate functions directly within the pipeline or store them in separate scripts, and establishing the appropriate scope for each individual function. Achieving the right balance in the complexity of the functions is crucial; functions should be lengthy enough to leverage the benefits of a function-based setup, yet concise enough to facilitate effective debugging.
+
+Learning Targets in R is most effective when approached through hands-on practice, but it can be beneficial to consider the following recommendations:
+
+- Organize all functions in a dedicated folder titled "functions" within the working directory and use the command **sapply(list.files("~/functions"), source)** in the _targets.R script to source all the functions pre-pipeline.
+- Create a separate script for each function and name it identically to the function it represents.
+- Consider saving the results in a distinct output folder within the functions preparing the output, utilizing functions like **ggplot2::ggsave** or **writexl::write_xlsx**.
+- Retain the ability to debug using the browser functionality by inserting the **browser()** statement within the relevant function and executing a **tar_make(callr_function=NULL)** command.
+- Remove objects using **tar_delete()** as needed, and consider running a **tar_prune()** subsequently to remove any unnecessary objects.
+- Utilize the functionality of **tar_load_everything()** or **tar_load(starts_with())** to load objects in bulk, avoiding the need to list each object explicitly.
+- **tar_visnetwork()** can be used to visualize the dependencies and status op the objects in the pipeline. 
+
+The above being a very brief introduction to targets, we encourage further reading including:
+
+- The {targets} R package user manual: https://books.ropensci.org/targets/
+- Thomas Gerds is course director of the course “Targeted Register Analysis” which includes some nice exercises in R using targets, available at: https://github.com/tagteam/registerTargets/tree/main
 
 # Data visualization
 
