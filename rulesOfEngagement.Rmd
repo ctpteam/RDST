@@ -11,6 +11,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+![](./moses.png)
 
 # Security first
 First of all the rules for statistics Denmark regarding data needs to be read, learned and understood. Some materials exists here: [link](https://www.dst.dk/da/TilSalg/Forskningsservice/hjemtagelse-af-analyseresultater). These rules are first of all designed to adhere to GDPR and avoid disclosure of microdata. The rules will not be repeated here, but from our experience particular care needs to be addressed in the following cases:
