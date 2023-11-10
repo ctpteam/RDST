@@ -12,9 +12,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ![](./moses.png)
-\tableofcontents 
-
-
 # Security first
 First of all the rules for statistics Denmark regarding data needs to be read, learned and understood. Some materials exists here: [link](https://www.dst.dk/da/TilSalg/Forskningsservice/hjemtagelse-af-analyseresultater). These rules are first of all designed to adhere to GDPR and avoid disclosure of microdata. The rules will not be repeated here, but from our experience particular care needs to be addressed in the following cases:
 
@@ -25,8 +22,6 @@ First of all the rules for statistics Denmark regarding data needs to be read, l
 
 # Penalties
 If microdata are exported from Statistics Denmark and we notify Statistics Denmark of the violation - then the draconian penalties are not enforced. It is therefore important to immediately notify Statistics Denmark when violations are identified.
-
-It has been a general observation that minor violations are very often caught when checking data prior to export. This creates an impression that the responsibility is that of the exporter rather than the requesting person. To create equal sense of responsibility it is therefore a rule that any minor violations causes that user to sustain a **7 day pause** for any export.
 
 # Servers
 Our network currently has 4 operating servers numbered 3-6. Servers 3 and 6 are back-up servers and available for use, but generally we advise not to use them.  Servers 4 and 5 are large and program updates etc. are prioritized for these servers.  Therefore only use servers 4 and 5.
@@ -56,7 +51,8 @@ There are a number of drives that are shared between our servers.  Of these driv
 # Exporting programs 
 Programs can be exported or moved to other project folders. These two procedures are both considered exporting by Statistics Denmark and both are subject to the draconian penalties used. Therefore we are employing very strict rules resulting from the fact that the rules in "goodProgrammingPractice" cannot be assumed followed in the past.
 
-* In general programs should neither be moved or exported. When absolutely necessary, at least three people should check the program and one of these should be from the network steering committee ("the elders"). This ensures that extreme care is taken to ensure against microdata.
+* In general programs should neither be moved or exported. This is the absolute protection against rule violations.  When necessary, consider only moving the part of a program that is very difficult to repeat such as a chunk of program with a long list of disease definitions.  Export/moving of programs requires discussion with a member of the steering committee ("older")
+
 * We ensure that programs are made accessible even for old inactive projects.
 
 # Search strings for R and SAS
