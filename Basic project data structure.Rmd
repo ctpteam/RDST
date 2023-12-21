@@ -29,7 +29,7 @@ The following headlines correspond to the subfolders in **Grunddata** on project
 This includes the cancer registry from SDS (t_tumor)
 
 # Death
-**T_dodsaarsage_1** is the national cause of death register until 2001 when new death certificates were introduced
+**T_dodsaarsag_1** is the national cause of death register until 2001 when new death certificates were introduced
 
 **T_dodsaarsag_2** is the new cause of death register. Note that attempts have been made to provide simple translations of new to olds cause of death definition, but this should be discouraged.  It is important to note the update of causes of death is very much delayed.
 
@@ -46,6 +46,8 @@ When relevant the **pato** register of microscope examinations is also supplied 
 LPR1 uses ICD8-codes and was 1994 replaced with LPR2 and ICD_10 codes. This continued until about march 2019 where LPR3 started.  LPR3 is structured very differently from LPR1/2.  It has therefore been decided to maintain the partially digested LPR1/2 data in the following deliveries:
 **diag_indl** contains all diagnoses and selected administrative data.
 **opr** includes all procedure codes and all examination codes (sksube) - again with added administrative data.
+
+Some projects will also include **opr_old** which are ICD8 procedures prior to approximately 1994.  Other projects also have the file **lpr_bes** which are outpatient contacts from lpr2.
 
 Psychiatric admissions were provided in independent tables. Note than occasionally psychiatric diagnoses appear in the somatic data, but not consistently.
 
@@ -86,7 +88,11 @@ The tables **indXXXX** hvor Xs represent years include income and fortune of inv
 
 The tables **uddaXXXX** has maximal education for all individuals.  There are SAS formats to translate to understandable values and also a R-function in heaven to do this.
 
+The table **uddfXXXX** contains also maximal education.  Only the last year is necessdary to include as it is uptated with new data annually. It appears to include maximal education for more people than udda-files, perhaps because imported educations are also registered here.
+
 The table **dreamXXXXXX** is an updated version of dream that for each week has codes indicating public support and for each month indication of association to particular working areas.
+
+Som projects include **kotre** and **koto** which are student registers.
 
 # SSS
 **SYSI** and **SSSY** are data from practitioners to many types representing different time periods.
@@ -97,3 +103,4 @@ For all projects there is a folder named **External Data**.  The data in this fo
 # V:/data/Alle
 On the V-path subfolder "alle" is a number of moderately organised folders for a variety of anonymous and useful data.  Not in particular details of medication in LMDBdata, text versions of diagnoses in ICD8 and ICD10
 
+Note also here the "skeleton" folder that includes sample programs to import data from the structure required by Statistics Denmark
