@@ -157,6 +157,22 @@ The functions **setkey(DT,"var")** and **setkeyv(DT,c("var1","var2"))** sorts th
 
 If you need sorting an variable order the functions to use are **setorder()** and **setorderv()** with this example **setorderv(DT, c("A", "B"), c(1, -1))** sorting ascending by A and descending by B.
 
+## Mark groups with or without sorting
+It is common that a variable is required which changes value when treatment, status or other individual characteristics change. Such grouping can be tricky since "by" in data.table also may sort the data - and unwanted results are returned if the characteristic studied may fluctuate between values such that one value appear several times.  The **rleid** function is very useful in such cases.
+
+```{r}
+ library(data.table)
+ # Create a sample data.table
+ data <- data.table(
+   person = c(1, 1, 1, 2, 2, 1, 1, 2, 2),
+   time = c(1, 2, 3, 1, 2, 4, 5, 3, 4),
+   value = c(10, 10, 10, 5, 10, 5, 30, 5, 10)
+ )
+ setkeyv(data,c("person","time"))
+ data[,rl:=rleid(value),by="person"]
+ data[]
+```
+
 ## Conditional manipulation of variable
 The standard format for a conditioned change of a variable is **DT[var==value,var:=new_value]**
 Another option which occasionally is more convinient is to use **fifelse()** which needs three (or four) parameters: first a logical statment, then the value if TRUE then the value if FALSE and finally the optional value to return for NA: **DT[,newvar:=fifelse(oldvar>x,2,1,NA)]**
