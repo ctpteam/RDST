@@ -16,6 +16,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# New additions
+January 2024: Description of the rleid function and how to get RStudio start up quickly
 
 # Preamble
 
@@ -30,14 +32,17 @@ devtools::install_github("tagteam/heaven")
 
 Statistics Denmark is a closed environment and all packages available are pre-installed, therefore only library statements are necessary. All packages in the CRAN package repository are installed on the servers used by us.
 
+Occationally you will find that a package does not work with the latest installment of R.  In such cases you can from RStudio global options select an earlier version of R.
+
 Most R programs start with a list of **library()** statements to provide connection with functions in selected packages. Another possibility is to provide both the package name and the function name for a call. In this document we will try consitently to use the latter convention to show which packages needs to be included in a program. For standard use library statements should be the rule.  The function 'thisFunction()' in 'thisPackage' is in this document shown as **thisPackage::thisFunction()**. The exception to that rule is the package **data.table** where many functions cannot be shown indirectly.
 
-Most R programs start with a list of **library()** statements to provide connection with functions in selected packages. Another possibility is to provide both the package name and the function name for a call. In this document we will try consitently to use the latter convention to show which packages needs to be included in a program. For standard use library statements should be the rule.  The function thisFunction() in thisPackage is in this document shown as **thisPackage::thisFunction()**. The exception to that rule is the package **data.table** where
 It is important to structure the data of a project in such a way that a logic is maintained - and also a logic which can be identified by others. In the common circumstance that help is required by others this logic is tested. It should also be noted that a scientific project can later be criticized and require a need to document how a result was obtained. In this situation a logical structure of the project is necessary when the programs need to be rerun years later.
 
 # Housekeeping 
 
 In general there are multiple ways of reaching the target of a project.  We encourage to use the suggestions in the document "Good Programming Practice".
+
+A standard start up of RStudio in Statistics Denmark is very slow. The reason is the creation of the "Packages pane".  And this is slow because CRAN has been enabled in total. To get a quick start you should disable this option in Global option - Packages - Management where the "v" in "Enable package pane" should be removed.
 
 ## Memory use
 
@@ -53,6 +58,76 @@ Hard drive memory should also be used sparingly, although less so than RAM. What
 If you have used the **create_project()** function to define the project there are suggestions for R scripts that encourage a starting comment defining the author and the purpose of the program.
 
 In the beginning of your program, you should use the function **setwd("path to data")** to the directory for your data - or to the directory for your project.  This makes reference to datasets in your project easier.  If you choose the directory of the project you can use relative paths to read and write in subfolders of your project such as **saveRDS(R-object-name,file="/data/filename.rds")** to write in the "data" subfolder.
+
+# Brief introduction to Targets 
+
+A script-based approach to data management and analysis has been a common practice, often involving a series of numbered scripts that need to be executed in a specific order to reproduce the desired results. 
+
+However, this approach can lead to challenges in managing dependencies, ensuring that downstream results reflect any changes in upstream data or code, and encouraging efficient coding practices. The Targets package offers a solution to these issues by streamlining function-driven pipelines, making it easier to handle dependencies and streamline complex data workflows.
+
+One effective way to initiate the use of the Targets package is by following these steps: 
+
+1. First loading the package with **library(targets)**
+2. Then setting the working directory using **setwd()**
+3. Then executing the command **use_targets()** in the R console 
+
+This sequence of actions sets up the necessary directory structure in the specified working directory. The package creates an initial script named _targets.R, which serves as the foundation for building the data analysis pipeline.
+
+Below is an example illustrating the application of the Targets package:
+
+```{r,warning=FALSE}
+# Install required packages if not already installed
+if (!requireNamespace("targets", quietly = TRUE)) {
+  install.packages("targets")
+}
+
+# Load the necessary packages
+library(targets)
+
+# Define functions to be used within the pipeline
+tar_option_set(
+  packages = c("knitr", "ggplot2") # add packages 
+)
+
+# Define the target functions
+create_data <- function(){
+  data <- data.frame(
+    x = runif(100),
+    y = rnorm(100)
+  )
+}
+
+# Define the pipeline
+invisible(list(
+tar_target(data,create_data()),
+tar_target(plot,{
+  ggplot(data, aes(x = x, y = y)) + geom_point()
+})
+))
+
+#invisible to suppress output, not necessary normally 
+
+```
+
+The provided simple example shows a very short pipeline, comprising two steps, which can be extended endlessly to accommodate complex analyses. The pipeline is executed by running **tar_make()** in the console. One of the main time saving aspects of Targets is that when running **tar_make**, any changes to the pipeline are detected and only objects that that are outdated are updated.  
+
+Context specific decision in setting up the pipeline involves considering factors such as the extent of inclusion of results and sensitivity analyses in the pipeline, determining whether to integrate functions directly within the pipeline or store them in separate scripts, and establishing the appropriate scope for each individual function. Achieving the right balance in the complexity of the functions is crucial; functions should be lengthy enough to leverage the benefits of a function-based setup, yet concise enough to facilitate effective debugging.
+
+Learning Targets in R is most effective when approached through hands-on practice, but it can be beneficial to consider the following recommendations:
+
+- Organize all functions in a dedicated folder titled "functions" within the working directory and use the command **sapply(list.files("~/functions"), source)** in the _targets.R script to source all the functions pre-pipeline.
+- Create a separate script for each function and name it identically to the function it represents.
+- Consider saving the results in a distinct output folder within the functions preparing the output, utilizing functions like **ggplot2::ggsave** or **writexl::write_xlsx**.
+- Retain the ability to debug using the browser functionality by inserting the **browser()** statement within the relevant function and executing a **tar_make(callr_function=NULL)** command.
+- Remove objects using **tar_delete()** as needed, and consider running a **tar_prune()** subsequently to remove any unnecessary objects.
+- Utilize the functionality of **tar_load_everything()** or **tar_load(starts_with())** to load objects in bulk, avoiding the need to list each object explicitly.
+- **tar_visnetwork()** can be used to visualize the dependencies and status op the objects in the pipeline. 
+
+The above being a very brief introduction to targets, we encourage further reading including:
+
+- The {targets} R package user manual: https://books.ropensci.org/targets/
+- Thomas Gerds is course director of the course “Targeted Register Analysis” which includes some nice exercises in R using targets, available at: https://github.com/tagteam/registerTargets/tree/main
+
 
 # Read data
 Data in Statistics Denmark is generally provided as SAS datasets - and a few data are provided in ASCII format which includes the very useful "csv" format.
@@ -136,12 +211,12 @@ Many imported datasets have a confusing attitude to "case" with mixtures of uppe
 The most efficient way to select a subset of variables is **DT2 <- DT[,.(var1,var5,var8)]**. In some circumstances, such as within a function, another version is: **DT2 <- DT[,.SD,.SDcols=c(var1,var5,var8)]**.  The variable **.SD** is "subset of data.table" and refers to a group of columns in the dataset.
 
 ## Subset selection
-If a dataset has been sorted by an individual identifier and another variable such as a date, it is common that you want to select just the first occurrence for each individual. This is done with **DT2 <- DT[,.SD[1],by="individual_identifier"]**. If You instead want the last occurrence **[1]** is replace by **[.N]** and if You for some reason want the second occurrence the replacement is **[2]**.
+If a dataset has been sorted by an individual identifier and another variable such as a date, it is common that you want to select just the first occurrence for each individual. This is done with **DT2 <- DT[,.SD[1],by="individual_identifier"]**. If You instead want the last occurrence **[1]** is replaced by **[.N]** and if You for some reason want the second occurrence the replacement is **[2]**.
 
 If You want to select a subset based on a logical statement, and efficient way is **DT2 <- DT[age<100]**.
 
 In case you want to search for all records that start with a selected string you can use:
-**DT2 <- DT[grepl("^A10",var)]** that finds all records where "var" starts with "A10". This is a very simple example of a "regular expression" which is an extremely versatile tool to search for complicated relation. An overview of regular expressions can be found at [https://stringr.tidyverse.org/articles/regular-expressions.html].  
+**DT2 <- DT[grepl("^A10",var)]** that finds all records where "var" starts with "A10". This is a very simple example of a "regular expression" which is an extremely versatile tool to search for complicated relation. An overview of regular expressions can be found at [https://stringr.tidyverse.org/articles/regular-expressions.html].  Further CHATGBT is very good are making regular expressions.
 
 It is common to require a number of conditions to be defined each by a range of variable content. An example is to search for multiple comorbidites which each are defined by a range of diagnosis codes. A special function **heaven::findCondition** have been developed for this purpose:
 
@@ -183,7 +258,7 @@ Many chores need to repeated on many variables, an example being changing a nume
 vars <- c("var1","var2"...)
 for (x in vars) DT[get(x)==999,(x):=NA]
 ```
-Note two peculiarities here.  If we had written x== instead of get(x)== data.table would not know whether x was an object or representing the loop variable.  get() solves that problem by enforcing evaluation of x.  Similarly, if we had written x:=NA we would repeatedly create a variable named 'x' - the parenthesis forces the evaluation in this case.
+Note two peculiarities here.  If we had written "x==" instead of "get(x)==" data.table would not know whether x was an object or representing the loop variable.  get() solves that problem by enforcing evaluation of x.  Similarly, if we had written x:=NA we would repeatedly create a variable named 'x' - the parenthesis forces the evaluation in this case.
 
 ## Append - rbind
 Combining several data.tables to create one long table can be achived with **rbindlist()** or **rbind()**. If the only input is a vector of data.table objects then names and order of columns need to match perfectly. If one table contains extra variables these columns can be set to NA for the other tables with the option **fill=TRUE**. The option **idcol="file"** adds a column with the name of the object that contributed to each record.
@@ -324,75 +399,6 @@ rbindlist(lapply(DT[,number],function(x){ # the function being defined right her
 }))
 
 ```
-
-# Brief introduction to Targets 
-
-A script-based approach to data management and analysis has been a common practice, often involving a series of numbered scripts that need to be executed in a specific order to reproduce the desired results. 
-
-However, this approach can lead to challenges in managing dependencies, ensuring that downstream results reflect any changes in upstream data or code, and encouraging efficient coding practices. The Targets package offers a solution to these issues by streamlining function-driven pipelines, making it easier to handle dependencies and streamline complex data workflows.
-
-One effective way to initiate the use of the Targets package is by following these steps: 
-
-1. First loading the package with **library(targets)**
-2. Then setting the working directory using **setwd()**
-3. Then executing the command **use_targets()** in the R console 
-
-This sequence of actions sets up the necessary directory structure in the specified working directory. The package creates an initial script named _targets.R, which serves as the foundation for building the data analysis pipeline.
-
-Below is an example illustrating the application of the Targets package:
-
-```{r,warning=FALSE}
-# Install required packages if not already installed
-if (!requireNamespace("targets", quietly = TRUE)) {
-  install.packages("targets")
-}
-
-# Load the necessary packages
-library(targets)
-
-# Define functions to be used within the pipeline
-tar_option_set(
-  packages = c("knitr", "ggplot2") # add packages 
-)
-
-# Define the target functions
-create_data <- function(){
-  data <- data.frame(
-    x = runif(100),
-    y = rnorm(100)
-  )
-}
-
-# Define the pipeline
-invisible(list(
-tar_target(data,create_data()),
-tar_target(plot,{
-  ggplot(data, aes(x = x, y = y)) + geom_point()
-})
-))
-
-#invisible to suppress output, not necessary normally 
-
-```
-
-The provided simple example shows a very short pipeline, comprising two steps, which can be extended endlessly to accommodate complex analyses. The pipeline is executed by running **tar_make()** in the console. One of the main time saving aspects of Targets is that when running **tar_make**, any changes to the pipeline are detected and only objects that that are outdated are updated.  
-
-Context specific decision in setting up the pipeline involves considering factors such as the extent of inclusion of results and sensitivity analyses in the pipeline, determining whether to integrate functions directly within the pipeline or store them in separate scripts, and establishing the appropriate scope for each individual function. Achieving the right balance in the complexity of the functions is crucial; functions should be lengthy enough to leverage the benefits of a function-based setup, yet concise enough to facilitate effective debugging.
-
-Learning Targets in R is most effective when approached through hands-on practice, but it can be beneficial to consider the following recommendations:
-
-- Organize all functions in a dedicated folder titled "functions" within the working directory and use the command **sapply(list.files("~/functions"), source)** in the _targets.R script to source all the functions pre-pipeline.
-- Create a separate script for each function and name it identically to the function it represents.
-- Consider saving the results in a distinct output folder within the functions preparing the output, utilizing functions like **ggplot2::ggsave** or **writexl::write_xlsx**.
-- Retain the ability to debug using the browser functionality by inserting the **browser()** statement within the relevant function and executing a **tar_make(callr_function=NULL)** command.
-- Remove objects using **tar_delete()** as needed, and consider running a **tar_prune()** subsequently to remove any unnecessary objects.
-- Utilize the functionality of **tar_load_everything()** or **tar_load(starts_with())** to load objects in bulk, avoiding the need to list each object explicitly.
-- **tar_visnetwork()** can be used to visualize the dependencies and status op the objects in the pipeline. 
-
-The above being a very brief introduction to targets, we encourage further reading including:
-
-- The {targets} R package user manual: https://books.ropensci.org/targets/
-- Thomas Gerds is course director of the course “Targeted Register Analysis” which includes some nice exercises in R using targets, available at: https://github.com/tagteam/registerTargets/tree/main
 
 # Data visualization
 
