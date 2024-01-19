@@ -17,7 +17,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # New additions
-January 2024: Description of the rleid function and how to get RStudio start up quickly
+January 2024: Description of the rleid function and how to get RStudio start up a bit less slow
 
 # Preamble
 
