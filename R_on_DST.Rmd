@@ -42,7 +42,11 @@ It is important to structure the data of a project in such a way that a logic is
 
 In general there are multiple ways of reaching the target of a project.  We encourage to use the suggestions in the document "Good Programming Practice".
 
-A standard start up of RStudio in Statistics Denmark is very slow. The reason is the creation of the "Packages pane".  And this is slow because CRAN has been enabled in total. To get a quick start you should disable this option in Global option - Packages - Management where the "v" in "Enable package pane" should be removed.
+## RStudio startup
+
+A standard start up of RStudio in Statistics Denmark is very slow. One reason is the creation of the "Packages pane".  And this is slow because CRAN has been imported in total. To get a slightly quicker start you should disable this option in Global option - Packages - Management where the tick in "Enable package pane" should be removed.
+
+It is also wise to remove many ticks of check boxes in the Tools - Global option - General menu.  The work-space should never be saved and time is spent reading old things.
 
 ## Memory use
 
