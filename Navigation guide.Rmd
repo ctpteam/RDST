@@ -1,0 +1,45 @@
+---
+title: "Navigation guide"
+author: "Mikkel Porsborg Andersen & Christian Torp-Pedersen"
+date: "2024-02-15"
+output: pdf_document
+---
+
+# How to apply for data from the Health Data Authority(SDS)
+This section contains guide to making applications for data. Relevant for thos wishing to update projects with datasets from The Danish Health Data Authority
+
+# Old Data agency permission from Gentofte
+This are old data permissions that still apply to selected projects
+
+# Programming Guidance
+This folder includes a range of important document for all users of Statistics Denmark. In particular the document "Rules of Engagement" must be learned.  In order to save your own time and not be in the way of others it is also important to examine "Good programming practice" and "Basic Project Data Structure"
+
+# Project Information
+This includes a folder for each project on Statistics Denmark. Here You can find all permissions including numbers to put in manuscripts. Descriptions of data files on the project is also found here
+
+# Slide shows from symposia and network introduction
+Slides shows from previous meetings are found here
+
+# Users and exporters
+Here you can find lists of users for projects and contacts to people with export permissions
+
+# Various statistics Denmark (DST) manuals
+Here you can find a number of guides relevant for people that wish to update or create projects as well as information on version 3 of the patient register
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
