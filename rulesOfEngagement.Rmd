@@ -1,7 +1,7 @@
 ---
 title: "Rules of Engagement for Statistics Denmark - www.heart.dk"
 author: "Christian Torp-Pedersen"
-date: "2023-11-04"
+date: "2024-02-15"
 output:
   pdf_document:
     toc: true
@@ -20,6 +20,11 @@ First of all the rules for statistics Denmark regarding data needs to be read, l
 * Numbers at risk below Kaplan Meier graphs become small at the end of follow-up. Remove small numbers.  It is rarely useful to report very small numbers, so please only provide decently large numbers and do not for example show “4” or “$\le 3$”  unless particularly necessary.  In general limit the X-axis to only show the part of the graph with large numbers.
 * Graphs can be tricky, in particular scatter graphs. Depending on the ability to derive exact numbers on the axes such graphs may disclose microdata.  The problem is particularly large with outliers that always need to be removed. You can report in the legend to figures that such outliers were removed.
 * Programs are particularly tricky because they are generally long.  In principle programs need to be kept securely since they are the documentation of our work if critical questions arise.  We have provided some rules for “good programming practice” in a separate document. Such rules have in the past not been adhered to with a risk that microdata appears in programs.  Therefore programs can neither be exported nor transferred to other projects.  Any exception to this principle requires that at least 3 people have scrutinized the program and one of these should be the “older” associated with the project.
+
+# Other important documents
+On www.heart.dk/github/programming guidance there is a document "Good programming practice". It is necessary to study this and adhere to most suggestions to save your own time and not to get in the way of other users.
+
+The basic data structure of projects on Statistics Denmark changes as projects are moved to the "Danmarks Data Vindue" structure in Statistics Denmark.  The document "Basic Data Structure" describes where files can be found.
 
 # Penalties
 If microdata are exported from Statistics Denmark and we notify Statistics Denmark of the violation - then the draconian penalties are not enforced. It is therefore important to immediately notify Statistics Denmark when violations are identified.
