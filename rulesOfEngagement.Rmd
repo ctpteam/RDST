@@ -1,13 +1,17 @@
 ---
 title: "Rules of Engagement for Statistics Denmark - www.heart.dk"
 author: "Christian Torp-Pedersen"
-date: "2023-11-04"
+date: "2024-04-26"
 output:
   pdf_document:
-    toc: true
     toc_depth: 2
 ---
 ![](./moses.png)
+\newpage
+\tableofcontents
+\newpage
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```

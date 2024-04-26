@@ -6,13 +6,14 @@ author:
 - Kathrine Kold Sørensen
 - Amalie Lykkemark Møller
 - Filip Gnesin
-date: "`r format(Sys.time(), '%d %B %Y')`"
+date: "2024-04-26"
 output:
-  pdf_document:
-    toc: true
-    toc_depth: 2
+  pdf_document
 ---
-
+![](./RDST.png)
+\newpage
+\tableofcontents
+\newpage
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -32,7 +33,7 @@ devtools::install_github("tagteam/heaven")
 
 Statistics Denmark is a closed environment and all packages available are pre-installed, therefore only library statements are necessary. All packages in the CRAN package repository are installed on the servers used by us.
 
-Occationally you will find that a package does not work with the latest installment of R.  In such cases you can from RStudio global options select an earlier version of R.
+Occasionally you will find that a package does not work with the latest installment of R.  In such cases you can from RStudio global options select an earlier version of R.
 
 Most R programs start with a list of **library()** statements to provide connection with functions in selected packages. Another possibility is to provide both the package name and the function name for a call. In this document we will try consitently to use the latter convention to show which packages needs to be included in a program. For standard use library statements should be the rule.  The function 'thisFunction()' in 'thisPackage' is in this document shown as **thisPackage::thisFunction()**. The exception to that rule is the package **data.table** where many functions cannot be shown indirectly.
 

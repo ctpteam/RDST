@@ -5,12 +5,14 @@ author:
 - Christian Torp-Pedersen
 - Kathrine Kold Sørensen
 - Filip Gnesin
-date: "`r format(Sys.time(), '%d %B %Y')`"
+date: "2024-04-26"
 output:
-  pdf_document:
-    toc: true
-    toc_depth: 2
+  pdf_document
 ---
+![](./Instructor.png)
+\newpage
+\tableofcontents
+\newpage
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -19,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Preamble
 This document sets up rules for programming in the research environment of Statistics Denmark. Some of the rules are not relevant elsewhere.  The rules in this particular document are not specific to choice of program and equally relevant to users of R, SAS and STATA. Adherence to these rules protect our environment from microdata violations, ease bug finding and ease collaboration.
 
-Updated January 7 - with recommendation only to use original source data
+Updated January 7, 2024 - with recommendation only to use original source data
 
 # Security first
 Programs are not only the paths from data to result, but also the only documentation a user may have of this path which makes safe keeping of programs essential in case critical questions to results should arise.  It is therefore essential that programs are build such that they can be exported from Statistics Denmark - which implies that they do not contain what Statistics Denmark call "microdata". The most serious of microdata is the encrypted cpr-number and these numbers may therefore never appear in programs. When it appears convenient to base program logic on encrypted individual cpr-numbers, these statements should be replaced with the logic that was used to identify the encrypted numbers. Because rules may be violated it is particularly important that programs are checked extremely carefully prior to rare cases of export (or transfer to another project). In the export chapter of "Rules of Engagement" there are suggestions for search strings to use.
@@ -30,6 +32,7 @@ Programs are not only the paths from data to result, but also the only documenta
 * The scripts creating the results need to appear in very few files. Old versions and various side projects should be placed in a "sandbox" or similar subfolder clearly indicating the secondary importance.
 
 # Program structure
+*    
 * Separate data management from analysis. Often it is useful to have two files for a project, one for data management and the other containing the analyses and statements that produce the tables and graphics for a paper.  
 * All your programming should start with original source programs. This is to make sure that you in the future can document how results were obtained.  If you start with data produced by another user there is a risk that these data have changed at a time where you need to document your results.  It is fine to copy the program another user has made to your folder for use there. 
 * For R-users the "targets" pipeline structure is highly recommended since it creates an easily identifiable structure and makes it easy to ask for help from others.
