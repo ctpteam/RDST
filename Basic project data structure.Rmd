@@ -3,10 +3,10 @@ title: "General data organisation"
 author: 
 - Christian Torp-Pedersen 
 - Mikkel Porsborg Andersen
-date: "2023-07-21"
+date: "2024-04-30"
 output: pdf_document
 ---
-![](./houseOfData.webp)
+![](./houseOfData.png)
 \newpage
 \tableofcontents
 \newpage
@@ -62,14 +62,17 @@ Some projects will also include **opr_old** which are ICD8 procedures prior to a
 Psychiatric admissions were provided in independent tables. Note than occasionally psychiatric diagnoses appear in the somatic data, but not consistently.
 
 LPR3 datasets are supplied without changes for the populations relevant for the project.
+
 ![](./lpr3.png)
+
+
 LPR3 contains the datasets provided in the figure. Additionally the key variables to connect data are shown. For a short introduction to LPR3 please see: https://github.com/ctpteam/DST/blob/master/Various%20Statistics%20Denmark%20(DST)%20manuals/Vejledning%20til%20LPR3_F.pdf
 
 For a thorough introduction to LPR3 see: https://github.com/ctpteam/DST/blob/master/Various%20Statistics%20Denmark%20(DST)%20manuals/LPR_Indberetningsvejledning_lang.pdf
 
 # Medication
 This directory includes all **lmdb** files available.
-Additional data regarding compounds can be found in **laegelmiddeloplysninger**, which in various updated versions are available on **V:\data\alle\LMDBdata**
+Additional data regarding compounds can be found in **laegelmiddeloplysninger**, which in various updated versions are available on **V:/data/alle/LMDBdata**
 
 # Mfr
 **mfr** is the national birth register and this dataset has data from 1997-2019.
