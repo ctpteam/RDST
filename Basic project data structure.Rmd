@@ -1,23 +1,30 @@
 ---
 title: "General data organisation"
-author: "Christian Torp-Pedersen / Mikkel Porsborg Andersen"
+author: 
+- Christian Torp-Pedersen 
+- Mikkel Porsborg Andersen
 date: "2023-07-21"
 output: pdf_document
 ---
+![](./houseOfData.webp)
+\newpage
+\tableofcontents
+\newpage
 
 Data to projects are provided from many sources, the most important being Statistics Denmark (DST) and the Health data organisation (Sundhedsdatastyrelsen, SDS).
 Data from these sources are by DST conceived as "base data" (Grunddata) and are
 systematically placed in a folder named **Grunddata**.
 
+All other data will appear in a folder named **Eksterne data**.  This folder may be further organised depending on the project.
+
 The current listing of dataset is very general and the project you are working on may contain fewer datasets or additional datasets.
-
-Data supplied from other sources are placed in other folders according to permissions for that project.
-
-Therefore the general structure of all projects will be a folder names "population" which has the populationk of the study when relevant, a folder names "external data" with data develivered from other sources than DST and SDS.
 
 This document provides an overview of the structure of **Grunddata**.  An important principle for the structure of data has been to change as little as possible to the orginal data supplied.  The reason for this is that it allows all users to interrogate DST and SDS for description of registers and definitions of variables.  These institutions have on their web-pages descriptions of datasets and well as variable explanations.
 
-A full list of all external data including variable explanations is available on DDV (Danmarks Data Vindue).
+Register details from the Danish Health Data Authority (Sundhedsdatastyrelsen) is found here: https://sundhedsdatastyrelsen.dk/da/registre-og-services/om-de-nationale-sundhedsregistre
+Register details from the Statistics Denmark is found here: https://www.dst.dk/extranet/forskningvariabellister/Oversigt%20over%20registre.html
+
+A full list of all external data including variable explanations is found on DDV (Danmarks Data Vindue).
 
 Data management with the new structure will result in changes of many programs. To ease this process we have written a SAS and R program to read data in a structured way.  These programs are found in V:/Alle/skeleton and are also visible on www.heart.dk/github/programming guidance/skeleton.
 
@@ -33,10 +40,13 @@ This includes the cancer registry from SDS (t_tumor)
 
 **T_dodsaarsag_2** is the new cause of death register. Note that attempts have been made to provide simple translations of new to olds cause of death definition, but this should be discouraged.  It is important to note the update of causes of death is very much delayed.
 
-Simple registration of death is in the **dod** table.  This table combines information from DST and SDS and is updated as much as other data in the project
+Simple registration of death is in the **dod** table.  This table combines information from DST (dod) and SDS (t_person) and is updated as much as other data in the project.  This dataset only cosntained date of death for deceased and is not described elsewhere.
+
+# Krim
+This folder contains information on criminal records and and related subjects.  Only available in selected folders.
 
 # Laboratory
-This folder first of all holds **lab_forsker**. NPU codes corresponding to tests are found in V:/data/alle/blodprøver
+This folder first of all holds **lab_forsker**. NPU codes corresponding to tests are found in V:/data/alle/blodprøver.  Additionally there is a dataset **lab_labidcodes** which contains information on the laboratory where the tests were conducted. This may be useful for selected assays, but carries the caveat that information on laboratory may not be exported.
 
 Historically we have collected laboratory results from willing sources and these are placed in separate subdirectories corresponding to the old municipal of Copenhagen (Kbh amt), Copenhagen general practitioners laboratory (KPLL), North Region of Denmark and Roskilde. The advantage of these datasets is that they reach further back in time than lab_forsker.
 
@@ -52,9 +62,14 @@ Some projects will also include **opr_old** which are ICD8 procedures prior to a
 Psychiatric admissions were provided in independent tables. Note than occasionally psychiatric diagnoses appear in the somatic data, but not consistently.
 
 LPR3 datasets are supplied without changes for the populations relevant for the project.
+![](./lpr3.png)
+LPR3 contains the datasets provided in the figure. Additionally the key variables to connect data are shown. For a short introduction to LPR3 please see: https://github.com/ctpteam/DST/blob/master/Various%20Statistics%20Denmark%20(DST)%20manuals/Vejledning%20til%20LPR3_F.pdf
+
+For a thorough introduction to LPR3 see: https://github.com/ctpteam/DST/blob/master/Various%20Statistics%20Denmark%20(DST)%20manuals/LPR_Indberetningsvejledning_lang.pdf
 
 # Medication
-This directory includes all **lmdb** files available and also **laegelmiddeloplysninger** which holds further details of medications.
+This directory includes all **lmdb** files available.
+Additional data regarding compounds can be found in **laegelmiddeloplysninger**, which in various updated versions are available on **V:\data\alle\LMDBdata**
 
 # Mfr
 **mfr** is the national birth register and this dataset has data from 1997-2019.
@@ -78,8 +93,9 @@ The main population register is the **bef** tables for each year since 1985 and 
 
 Prior to 1985 the **fain** tables provide some of the data found in **bef**.
 
-In addition the dataset **sexBirth** provides all sex definitions (0=female,1=male) available from the cpr-register (t_person)
-Projects may or may not directly have the **t_person** register
+In addition the dataset **sexBirth** provides date of birth and sex (0=female,1=male) available from the cpr-register (t_person). This particular dataset is not described further elsewhere.
+
+Projects may or may not directly have the **t_person** register. Not that this register also includes legal parents and "C_STATUS" which is 90 for death and also includes information on migration and people disappeared.
 
 Country of origin is found in the **iepe** dataset and all immigrations into and away from Denmark are found in the **vnds** table.
 
@@ -92,7 +108,7 @@ The table **uddfXXXX** contains also maximal education.  Only the last year is n
 
 The table **dreamXXXXXX** is an updated version of dream that for each week has codes indicating public support and for each month indication of association to particular working areas.
 
-Som projects include **kotre** and **koto** which are student registers.
+Some projects include **kotre** and **koto** which are student registers.  Further educational register may be available in selected projects.
 
 # SSS
 **SYSI** and **SSSY** are data from practitioners to many types representing different time periods.
@@ -104,3 +120,6 @@ For all projects there is a folder named **External Data**.  The data in this fo
 On the V-path subfolder "alle" is a number of moderately organised folders for a variety of anonymous and useful data.  Not in particular details of medication in LMDBdata, text versions of diagnoses in ICD8 and ICD10
 
 Note also here the "skeleton" folder that includes sample programs to import data from the structure required by Statistics Denmark
+
+# DST formats
+On the desktop of Statistics Denmark there is a STAR called formats.  This provides access to multiple format that can be helpful for classifying complex codes.  For example the four digit final education can with these data be transformed to ISCED classes.
