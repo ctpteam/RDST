@@ -11,6 +11,15 @@ output: pdf_document
 \tableofcontents
 \newpage
 
+Prior to understanding the new structure it is important to understand what not to expect there:
+
+**pop** was a dataset constructed by us which had pnr numbers from all dataset delivered. We used as the Danish population, but this is not entriely correct. In the new data structure you should use **bef** and **fain** to define the Danish Population.
+
+**doede** does not excist. In the Death folder you can find causes of deaths from to periods and a file with all available death dates.
+
+When updating from prior setup a large number of datasets have been deleted.  These datasets have been provided from external sources and during the period where people could take action to maintain these datasets no one has provided the necessary input.
+
+
 Data to projects are provided from many sources, the most important being Statistics Denmark (DST) and the Health data organisation (Sundhedsdatastyrelsen, SDS).
 Data from these sources are by DST conceived as "base data" (Grunddata) and are
 systematically placed in a folder named **Grunddata**.
