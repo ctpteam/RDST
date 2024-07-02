@@ -70,7 +70,9 @@ Some projects will also include **opr_old** which are ICD8 procedures prior to a
 
 Psychiatric admissions were provided in independent tables. Note than occasionally psychiatric diagnoses appear in the somatic data, but not consistently.
 
-LPR3 datasets are supplied without changes for the populations relevant for the project.
+LPR3 datasets are supplied without changes for the populations relevant for the project. Note that we have extensively reduced the number of datasets and variables provided not to overwhelm our servers. Basically the following four tables are made available: kontakter, diagnoser, procedurer_kirurgi and procedurer_andre.  For each table the number of variables has been substantially reduced and those interested in those removed need to request them for specific projects.
+
+Those accustomes to LPR1/2 will be searching for diagnosis codes and procedure codes.  Of note in LPR3 is is not uncommon to find these fields with "TUL.." codes or other non-standard codes. Some of these refer to side of patients (left/right) and for others we do not know the meaning.  But when strange codes are used you will find that the field "..._parent" has a more ordinary codes.  
 
 ![](./lpr3.png)
 
