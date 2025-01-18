@@ -33,7 +33,7 @@ Adjustment for multiple variables is often conceived as a magical statistical po
 
 In general we perform regressions on a logarithmic scale 
 $$
-log(X) = \beta 0+\beta 1* age + \beta 2* sex + \beta 3* exposure .......
+log(X) = \beta _0+\beta _1* age + \beta _2* sex + \beta _3* exposure .......
 $$
 Where X is the odds ratio, hazard ratio or rate ratio depending on whether you are using logistic regression, Cox regression or Poisson regression.
 
