@@ -25,6 +25,9 @@ First of all the rules for statistics Denmark regarding data needs to be read, l
 * Graphs can be tricky, in particular scatter graphs. Depending on the ability to derive exact numbers on the axes such graphs may disclose microdata.  The problem is particularly large with outliers that always need to be removed. You can report in the legend to figures that such outliers were removed.
 * Programs are particularly tricky because they are generally long.  In principle programs need to be kept securely since they are the documentation of our work if critical questions arise.  We have provided some rules for “good programming practice” in a separate document. Such rules have in the past not been adhered to with a risk that microdata appears in programs.  Therefore programs can neither be exported nor transferred to other projects.  Any exception to this principle requires that at least 3 people have scrutinized the program and one of these should be the “older” associated with the project.
 
+# Questions
+You are welcome to contact your supervisor and collaborators including the data management team.  Statistics Denmark requests that questions are filtered through our data management team.  Sundhedsdatastyrelsen is more problematic since they will answer questions, but also charge a high fee for answering (or not answering) any question.
+
 # Penalties
 If microdata are exported from Statistics Denmark and we notify Statistics Denmark of the violation - then the draconian penalties are not enforced. It is therefore important to immediately notify Statistics Denmark when violations are identified.
 

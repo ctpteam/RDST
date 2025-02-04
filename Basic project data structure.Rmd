@@ -15,10 +15,9 @@ Prior to understanding the new structure it is important to understand what not 
 
 **pop** was a dataset constructed by us which had pnr numbers from all dataset delivered. We used as the Danish population, but this is not entriely correct. In the new data structure you should use **bef** and **fain** to define the Danish Population.
 
-**doede** does not excist. In the Death folder you can find causes of deaths from to periods and a file with all available death dates.
+**doede** does not exist. In the Death folder you can find causes of deaths from to periods and a file with all available death dates.
 
 When updating from prior setup a large number of datasets have been deleted.  These datasets have been provided from external sources and during the period where people could take action to maintain these datasets no one has provided the necessary input.
-
 
 Data to projects are provided from many sources, the most important being Statistics Denmark (DST) and the Health data organisation (Sundhedsdatastyrelsen, SDS).
 Data from these sources are by DST conceived as "base data" (Grunddata) and are
@@ -40,6 +39,9 @@ Data management with the new structure will result in changes of many programs. 
 One very important change for many users is that we provide multiple files for each register according to the DST habit of having one file per year.  This change is made to ease data organisation as many users only need to interrogate data from selected years.  It further can help to increase speed of data processing by parallising calculations - the document **Parallel processing with SAS and R** describes this. Also, the programs for SAS/R enabling data management are available in the folder V:/data/alle/skeleton
 
 The following headlines correspond to the subfolders in **Grunddata** on projects.
+
+# Setup files
+Data in Grunddata are constructed with one or more SAS programs from raw data. Theses SAS programs are available in various versions in this folder.
 
 # Cancer
 This includes the cancer registry from SDS (t_tumor)
