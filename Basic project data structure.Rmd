@@ -87,6 +87,9 @@ For a thorough introduction to LPR3 see: https://github.com/ctpteam/DST/blob/mas
 This directory includes all **lmdb** files available.
 Additional data regarding compounds can be found in **laegelmiddeloplysninger**, which in various updated versions are available on **V:/data/alle/LMDBdata**
 
+Be careful when loading large sequences of data.  We routinely obtain datasets with all prescriptions during a year, but sometimes also 
+prescriptions covering the first 6 months.  If both are available and included it will result in multiple duplicate prescriptions that can disturb calciulations of therapy periods.
+
 # Mfr
 **mfr** is the national birth register and this dataset has data from 1997-2019.
 
