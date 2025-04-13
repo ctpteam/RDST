@@ -23,7 +23,7 @@ In addition to specifying variables during periods the user needs to specify whi
 
 The package does regression which takes into account both the exposure/covariate relation and the exposure outcome relation, an ability named "double robust". Thus for each time slice the probability of exposure during the next time slice is calculated and outcome during the next period can be determined from exposure variables from all preceding periods. In reality the regression starts from the last periods and moves backward using a regression technique developed by Robins (ref).
 
-A strength of the method is that the regressions to obtain propensity of treatment as well as outcome can be very flexible and include a library of regression methods.  For each project a "superlearner" can be specified to include parametric as well as non-parametric methods.  Choice of regression methods can be complex, but it is wise to include penalized regression parametric methods in order to downplay non-essential variables and also wise to include a tree based methods such as random forest in order to capture critical interactions with treatments.
+A strength of the method is that the regressions to obtain propensity of treatment as well as outcome can be very flexible and include a library of regression methods.  For each project a "superlearner" can be specified to include parametric as well as non-parametric methods.  Choice of regression methods can be complex, but it is wise to include penalized regression parametric methods in order to downplay non-essential variables and also wise to include a tree based methods such as random forest in order to capture critical interactions with treatments.  The final comparison is from G-estimation simulating a situation where all individuals first gets the first treatment choise and thereareter the other treatment. In this process all other variables than treatment are inhereted and therefore interaction with treatment cannot be realised with specifying interaction variables in models.
 
 What the method provides eventually is a hypothetical randomised study where the whole population (both treatment groups) first go through follow-up on one intervention and afterwards start over with the alternative.  This is termed G-estimation.
 
@@ -48,15 +48,24 @@ library(rtmle)
 setwd("~/github/rdst")
 baseline_data <- readRDS("./Example/baseline_data.rds")
 treatment_data <- readRDS("./Example/treatment_data.rds")
+outcome_data <- readRDS("./Example/outcome_data.rds")
 head(baseline_data)
 ```
 
-The other dataset has treatment periods where patients are allocated to be treated with 
+The next dataset has treatment periods where patients are allocated to be treated with 
 "A" or "B" - som consistently, others discontinue
 
 ```{r, echo=FALSE}
 head(treatment_data)
 ```
+The final dataset are the outcome data. Note that variables for event of interest,
+censoring and competing risk are coded with separate variables. For each outcome these three variables are mutually exclusive.  If there are multiple outcomes it can be recommended to handle 
+them in a single dataset for data management.
+```{r, echo=FALSE}
+head(outcome_data)
+```
+
+
 # Prepare for LTMLE
 LTMLE eventually requires that information is provided in a wide format with one record per individual and variables for each covariate.  The following procedure allows most of the management to be conducted in a long formate which eases checking of programming.
 
@@ -84,13 +93,9 @@ that change only once are held.  For the current example the only variables are 
 Note: If there are multiple outcomes for study these can be be handled simultaneously with organised naming.
 
 ```{r echo=TRUE}
-splitguideTwo <- baseline_data[,.(ID,Trial_Start,Event_Type,Outcome_time)]
-# use the multilevel event variable to create separate variable/time for censoring, outcome and competing risk
-splitguideTwo[Event_Type==0,censor:=Outcome_time]
-splitguideTwo[Event_Type==1,outcome:=Outcome_time]
-splitguideTwo[Event_Type==2,compete:=Outcome_time]
+
 longSplit <- splitTwo(indat=base,
-                      splitdat=splitguideTwo,
+                      splitdat=outcome_data,
                       invars=c('ID','inn','out'),
                       splitvars = c('ID','censor','outcome','compete'))
 ```
@@ -138,9 +143,9 @@ for the next period.
 
 ```{r echo=TRUE}
 setkeyv(longSplit,c("ID","period","inn"))
-# Max value of outcomes and time dependent exposures in each period
-longSplit[,':='(outcome=max(outcome),censor=max(censor),compete=max(compete),
-                A=max(A),B=max(B)),
+# Max value of outcomes and value of time dependent variables at period entry
+longSplit <-longSplit[,':='(outcome=max(outcome),censor=max(censor),compete=max(compete),
+                A=A[1],B=B[1]),
           by=c("ID","period")] 
 setkeyv(longSplit,c("ID","inn"))
 # Choose first record for each ID/period
@@ -171,7 +176,7 @@ treatment_dt <- longToWideList(aggrSplit_cov,"ID",c("A","B"))
 x <- rtmle_init(intervals=4,name_id='ID',name_time='period',name_outcome='outcome',
                 name_competing='compete',name_censoring='censor',
                 censored_levels=c('1','0'),censored_label="1")
-x$data <- list(baseline_data = baseline_data[,.(ID,Age)],
+x$data <- list(baseline_data = baseline_data[,.(ID,age)],
                outcome_data = outcome_dt,
                timevar_data=treatment_dt[1] # just "A"
                )
@@ -183,6 +188,28 @@ x <- run_rtmle(x,time_horizon = 2)
 summary(x)
 
 ```
+## LTMLE - Same analysis, but this time a complex superlearner with glmnet and to versions of random forest.
+```{r echo=TRUE}
+x <- rtmle_init(intervals=4,name_id='ID',name_time='period',name_outcome='outcome',
+                name_competing='compete',name_censoring='censor',
+                censored_levels=c('1','0'),censored_label="1")
+x$data <- list(baseline_data = baseline_data[,.(ID,age)],
+               outcome_data = outcome_dt,
+               timevar_data=treatment_dt[1] # just "A"
+)
+prepare_data(x) <- list()
+protocol(x) <- list(name = "A",treatment_variables = "A",intervention = 1)
+protocol(x) <- list(name = "not A",treatment_variables = "A",intervention = 0)
+target(x) <- list(name = "Risk",strategy = "additive",estimator = "tmle",protocols = c("A","not A"))
+x <- run_rtmle(x,
+               time_horizon = 2,
+               refit = TRUE,
+               learner = list("learn_ranger_50" = list(num.trees = 20,learner_fun = "learn_ranger"),
+                              "learn_glmnet"),folds = 10)
+summary(x)
+```
+
+
 ## LTMLE - Two variable for treatment, A and B. The comparison is for the target parameter "Always treat with A and never B versus Always treat with B and never with A".
 
 ```{r echo=TRUE}
@@ -190,7 +217,7 @@ summary(x)
 x <- rtmle_init(intervals=4,name_id='ID',name_time='period',name_outcome='outcome',
                 name_competing='compete',name_censoring='censor',
                 censored_levels=c('1','0'),censored_label="1")
-x$data <- list(baseline_data = baseline_data[,.(ID,Age)],
+x$data <- list(baseline_data = baseline_data[,.(ID,age)],
                outcome_data = outcome_dt,
                timevar_data=treatment_dt
                )
@@ -218,7 +245,7 @@ treatment in period 2
 x <- rtmle_init(intervals=4,name_id='ID',name_time='period',name_outcome='outcome',
                 name_competing='compete',name_censoring='censor',
                 censored_levels=c('1','0'),censored_label="1")
-x$data <- list(baseline_data = baseline_data[,.(ID,Age)],
+x$data <- list(baseline_data = baseline_data[,.(ID,age)],
                outcome_data = outcome_dt,
                timevar_data=treatment_dt
                )
