@@ -4,6 +4,9 @@ author: "Cæcilie Stilling Denholt & Mikkel Porsborg Andersen"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
   pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ![](faq_pic.jpg)
@@ -15,111 +18,194 @@ output:
 ```
 ## Can I contact Statistics Denmark (DST)/The Danish Health Data Authority (SDS) for support?
 
-Please, adhere to not contacting DST or SDS, as we will be billed for any contact to these.
+Please, adhere to not contacting DST or SDS, as we will be billed for
+any contact to these.
 
 ------------------------------------------------------------------------
 
 ## Moving codes between the project folders
 
-Codes can be moved between project folders if they don’t contain micro data (see [**Rules of Engagement**](https://github.com/ctpteam/DST/blob/master/Programming%20guidance/rulesOfEngagement.pdf). One R-file and one SAS-file can be moved. If more files need to be moved, please gather them in one file. Please adhere to the procedure described in [**Rules of Engagement**](https://github.com/ctpteam/DST/blob/master/Programming%20guidance/rulesOfEngagement.pdf).
+Codes can be moved between project folders if they don’t contain micro
+data (see [**Rules of
+Engagement**](https://github.com/ctpteam/DST/blob/master/Programming%20guidance/rulesOfEngagement.pdf).
+One R-file and one SAS-file can be moved. If more files need to be
+moved, please gather them in one file. Please adhere to the procedure
+described in [**Rules of
+Engagement**](https://github.com/ctpteam/DST/blob/master/Programming%20guidance/rulesOfEngagement.pdf).
 
 ------------------------------------------------------------------------
 
 ## Export of figures and tables from project folders to external environments
 
-Figures and tables can be exported for publication. In accordance with your certification, familiarize yourself with the rules for exportation of data from the servers at: [**dst.dk**](https://www.dst.dk/da/TilSalg/Forskningsservice/hjemtagelse-af-analyseresultater)
+Figures and tables can be exported for publication. In accordance with
+your certification, familiarize yourself with the rules for exportation
+of data from the servers at:
+[**dst.dk**](https://www.dst.dk/da/TilSalg/Forskningsservice/hjemtagelse-af-analyseresultater)
 
-When you and at least one other researcher has looked through the data, ask your supervisor to export the data. If this is not possible, ask your supervisor to facilitate contact to another researcher with rights to export (see [**Users and exporters**](https://github.com/ctpteam/DST/blob/master/Users%20and%20exporters/User%20And%20Exporter.xlsx)) and supply the following information:
+When you and at least one other researcher has looked through the data,
+ask your supervisor to export the data. If this is not possible, ask
+your supervisor to facilitate contact to another researcher with rights
+to export (see [**Users and
+exporters**](https://github.com/ctpteam/DST/blob/master/Users%20and%20exporters/User%20And%20Exporter.xlsx))
+and supply the following information:
 
 -   The path for the place of the file(s) that is to be exported
 
 -   A short description of the file content(s)
 
--   The names of the researchers, who have checked the files for micro data
+-   The names of the researchers, who have checked the files for micro
+    data
 
-Do not ask someone to send something home **that is not ready for publication**.
+Do not ask someone to send something home **that is not ready for
+publication**.
 
 ------------------------------------------------------------------------
 
 ## Upload data to the project folder
 
-You should never upload data before you have permission from your supervisor and responsible older.
+You should never upload data before you have permission from your
+supervisor and responsible older.
 
-Please see the guide at Github: **Uploading external data to the DST servers**
+Please see the guide at Github: **Uploading external data to the DST
+servers**
 
 ------------------------------------------------------------------------
 
 ## Resetting a password for DST severs
 
-You can reset your password at remote.dst.dk (the same place you choose and log in to the servers). Click “Forgot Password” → press “Reset" → a new password will be sent to your e-mail within a few minutes → click “Change Password” → fill in the information (NB, along with the password requirements (**12 characters including both capitalized letters, small letters, numbers, and symbols**), the password cannot be the same as it was before resetting it) → press “Submit”
+You can reset your password at remote.dst.dk (the same place you choose
+and log in to the servers). Click “Forgot Password” → press “Reset" → a
+new password will be sent to your e-mail within a few minutes → click
+“Change Password” → fill in the information (NB, along with the password
+requirements (**12 characters including both capitalized letters, small
+letters, numbers, and symbols**), the password cannot be the same as it
+was before resetting it) → press “Submit”
 
 ------------------------------------------------------------------------
 
 ## Changing a password for DST servers
 
-Passwords must be changed every year. The length and complexity requirements are: **12 characters including both capitalized letters, small letters, numbers, and symbols**. You can change your password at remote.dst.dk (the same place you choose and log in to the servers). Click “Change Password” → fill in the information (NB, along with the password requirements, the password cannot be the same as it was) → press “Submit”
+Passwords must be changed every year. The length and complexity
+requirements are: **12 characters including both capitalized letters,
+small letters, numbers, and symbols**. You can change your password at
+remote.dst.dk (the same place you choose and log in to the servers).
+Click “Change Password” → fill in the information (NB, along with the
+password requirements, the password cannot be the same as it was) →
+press “Submit”
 
 ------------------------------------------------------------------------
 
 ## Changing e-mail or phone number for DST-login
 
-To change to the e-mail or phone number connected to your login at remote.dst.dk: Log in to DDV → press "Profil" in the upper right corner → fill in required information
+To change to the e-mail or phone number connected to your login at
+remote.dst.dk: Log in to DDV → press "Profil" in the upper right corner
+→ fill in required information
 
 ------------------------------------------------------------------------
 
 ## Certification on DDV
 
-When required to perform the certification for the DST servers in DDV, you can find it at remote.dst.dk → "Læring og Certificering". You'll receive notice from DST when your certification is expiring.
+When required to perform the certification for the DST servers in DDV,
+you can find it at remote.dst.dk → "Læring og Certificering". You'll
+receive notice from DST when your certification is expiring.
 
-NB, if you are not certified when we do the annual closing of users, your access will be closed as well.
+NB, if you are not certified when we do the annual closing of users,
+your access will be closed as well.
 
 ------------------------------------------------------------------------
 
 ## Annual survey
 
-Every year a survey is sent out to all users in the network. The survey is designed to close users, that no longer need access to the servers. If the survey is not filled out within the deadline, the user will be closed. New users will also receive the survey, when getting access to the servers, and they also risk being closed again if the survey is not sent back.
+Every year a survey is sent out to all users in the network. The survey
+is designed to close users, that no longer need access to the servers.
+If the survey is not filled out within the deadline, the user will be
+closed. New users will also receive the survey, when getting access to
+the servers, and they also risk being closed again if the survey is not
+sent back.
 
 ------------------------------------------------------------------------
 
 ## Why do I not have access? And what do I do?
 
-If you either haven't completed the annual survey, haven't completed your certification on DDV, or your supervisor/older has asked you to be closed, you will have your access closed.
+If you either haven't completed the annual survey, haven't completed
+your certification on DDV, or your supervisor/older has asked you to be
+closed, you will have your access closed.
 
-If you need to regain access you'll need to contact your supervisor, which should provide the administrators with the following information:
+If you need to regain access you'll need to contact your supervisor,
+which should provide the administrators with the following information:
 
 -   The older approving the access
 -   The project folder(s) you need access to
--   Fill out survey and complete certification (which will be send to you)
+-   Fill out survey and complete certification (which will be send to
+    you)
+
+------------------------------------------------------------------------
+
+## Creating a new user at DST
+
+Creating a user on a project folder, whether it is a new or an existing
+user, requires first and foremost approval from either Christian
+Torp-Pedersen, Lars Køber, Gunnar Gislason, Henrik Enghusen Poulsen,
+Emil Fosbøl, Fredrik Folke, Kristian Kragholm, Morten Schou, Helle
+Collatz Christensen, Charlotte Andersson or Peter Rossing.
+
+After being approved, the following information must be submitted to the
+administrators:
+
+1.  Number of the project folder
+
+2.  Researcher's name
+
+3.  Researcher's email address
+
+4.  Ident (if the user has a previous agreement (brugeraftale) with DST)
+
+5.  Mobile number
 
 ------------------------------------------------------------------------
 
 ## Access to a specific project folder at Statistics Denmark
 
-If you want access to a project folder you'll need to contact your supervisor, which should provide the administrators with the following information:
+If you want access to a project folder you'll need to contact your
+supervisor, which should provide the administrators with the following
+information:
 
 -   The older approving the access
 -   The project folder(s) you need access to
 -   The ident of the user needing access
 
-Note: if the project folder contains more than 100 users, access cannot be granted.
+Note: if the project folder contains more than 100 users, access cannot
+be granted.
 
 ------------------------------------------------------------------------
 
 ## When is the registry data on the project folder updated?
 
-Once a year we get updated registry data to our project database, and we automatically update the project folders after receiving the data. If the project folder is not approved by SDS to get continuous date updates, the data on the project folder will not be automatically updated and we have to reapply for the data at SDS. If you need updated data, and it's not found on the project folder, please contact your responsible older.
+Once a year we get updated registry data to our project database, and we
+automatically update the project folders after receiving the data. If
+the project folder is not approved by SDS to get continuous date
+updates, the data on the project folder will not be automatically
+updated and we have to reapply for the data at SDS. If you need updated
+data, and it's not found on the project folder, please contact your
+responsible older.
 
-----
+------------------------------------------------------------------------
 
 ## Using RKKP-data
 
-Even though there are several RKKP registers available on the project folders, it is required to apply for approval from RKKP to use a registry **for individual projects**.
+Even though there are several RKKP registers available on the project
+folders, it is required to apply for approval from RKKP to use a
+registry **for individual projects**.
 
 Please see the guide at Github: **Applying for RKKP data**
 
-----
+------------------------------------------------------------------------
 
 ## Available data on the projects folders
 
-Each project folder has a subdirectory on the Github repository accessible through heart.dk. These are called by their project folder number.
-In the subdirectory we have a folder called 'DST approval' with the latest approved version of the project including the approved datasets, where you'll be able to see which datasets are available on each individual folder.
+Each project folder has a subdirectory on the Github repository
+accessible through heart.dk. These are called by their project folder
+number. In the subdirectory we have a folder called 'DST approval' with
+the latest approved version of the project including the approved
+datasets, where you'll be able to see which datasets are available on
+each individual folder.
