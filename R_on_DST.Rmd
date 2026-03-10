@@ -6,7 +6,7 @@ author:
 - Kathrine Kold Sørensen
 - Amalie Lykkemark Møller
 - Filip Gnesin
-date: "2024-04-26"
+date: "2026-02-02"
 output:
   pdf_document
 ---
@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # New additions
 January 2024: Description of the rleid function and how to get RStudio start up a bit less slow
+February 2026: Aid for using Parquet files
 
 # Preamble
 
@@ -134,7 +135,7 @@ The above being a very brief introduction to targets, we encourage further readi
 - Thomas Gerds is course director of the course “Targeted Register Analysis” which includes some nice exercises in R using targets, available at: https://github.com/tagteam/registerTargets/tree/main
 
 
-# Read data
+# Read standard data
 Data in Statistics Denmark is generally provided as SAS datasets - and a few data are provided in ASCII format which includes the very useful "csv" format.
 
 If you need to read an entire table from SAS you can use the **haven::read_sas()** function. The disadvantage of this is that it can take a long time to read a large dataset and the use of memory will be extensive.  On the other hand this function can handle nearly any complicated SAS dataset which is not always the case with the import_SAS function described below.
@@ -179,6 +180,79 @@ As data is imported to the project it is necessary to check that what you have d
 It is generally useful to create small tables to check that your data are what you expect them to be and a very useful procedure is
 
 * **object[,.N,keyby=var1]** which will tabulate the number of records by var1. Tabulation by multiple variables can be done by replacing keyby=var1 with character vector: **keyby=c("var1","var2"...)** or list **keyby=.(var1,var2...)**.
+
+# Parquet files
+Parquet files are column oriented which reduces size and makes them fast to read. This is the future raw data as of February 2026. Parquet files can be interrogated, read and written using the nanoparquet package. This package is useful for simple use where the whole datasets are interrogated:
+```{r,warning=FALSE,eval=FALSE}
+df <- nanoparquet::read_parquet("example.parquet")
+# or
+df <- arrow::read_parquet("example.parquet",col_select=c("var","var2"))
+
+nanoparquet::write_parquet(mtcars, "mtcars.parquet")
+# or
+arrow::write_parquet(mtcars, "mtcars.parquet")
+
+```
+
+To see various content of parqet files you can use:
+```{r,warning=FALSE,eval=FALSE}
+    nanoparquet::parquet_info() #shows a basic summary of the file.
+
+    nanoparquet::parquet_schema() #shows all columns, including non-leaf columns, and how they are mapped to R types by read_parquet().
+
+    nanoparquet::parquet_metadata() #shows the most complete metadata information: file meta data, the schema, the row groups and column chunks of the file.
+    
+colnames(arrow::open_dataset(sources = "C:/Data/parquet/mtcars") |>
+  dplyr::collect()) # provides a vector of column names    
+```
+In most cases what is needed from the raw parquet files is not the full content, but a content filtered to use selected columns and further only selected rows.  This is effectively done using the **DUCKDB** database program.  This can be used with dplyr or using SQL directly. I will use dplyr below. 
+
+## Read from a single parquet file
+```{r,warning=FALSE,eval=FALSE}
+con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:") #Establish connection - in memory
+
+data_subset <- tbl(con, "read_parquet('patients.parquet')") |>
+# If this is to run in a loop where the file is a character variable "x"
+# then You need to write: tbl(con,paste0("read_parquet('",x,"')"))
+# You have to create a string 
+select(id, age, diagnosis) |>        # Column filtering
+filter(age > 50, diagnosis == "I21") |>  # Row filtering
+collect() # Afslutter dannelse af dataset
+
+dbDisconnect(con, shutdown = TRUE)
+setDT(data_subset) # Optional -> data.table
+```
+Explanation
+
+    tbl() creates a lazy DuckDB query
+
+    select() reduces number of columns
+
+    filter() reduces number of rows
+
+    collect() pulls only the filtered data into R
+
+## Read from a sequence of similar parquet files
+```{r,warning=FALSE}
+library(DBI) # data base interface
+library(duckdb)
+library(dplyr)
+
+con <- dbConnect(duckdb(), ":memory:") 
+
+files <- list.files(  # Create the list of files - with a regular expression
+ "data/patients",
+  pattern = "\\.parquet$",
+  full.names = TRUE
+)
+
+result <- tbl(con, read_parquet(files)) |>
+ select(id, diagnosis, date) |>
+  filter(date >= "2020-01-01") |>
+  collect()
+
+dbDisconnect(con, shutdown = TRUE)
+```
 
 # Manipulating data
 This is described using data.table. In this description **DT** represents your data.table object. The general format for manipulating is **DT[i,j,by]**. This is most easily learned by remembering that records or rows can be subset using "i", columns can be selected, manipulated, or calculated using "j", and finally grouped using "by". So the general rule is **DT[where,what,grouping]**.
