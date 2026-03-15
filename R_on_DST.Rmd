@@ -182,7 +182,9 @@ It is generally useful to create small tables to check that your data are what y
 * **object[,.N,keyby=var1]** which will tabulate the number of records by var1. Tabulation by multiple variables can be done by replacing keyby=var1 with character vector: **keyby=c("var1","var2"...)** or list **keyby=.(var1,var2...)**.
 
 # Parquet files
-Parquet files are column oriented which reduces size and makes them fast to read. This is the future raw data as of February 2026. Parquet files can be interrogated, read and written using the nanoparquet package. This package is useful for simple use where the whole datasets are interrogated:
+Parquet files are column oriented which reduces size and makes them fast to read. This is the future raw data as of February 2026. Parquet files can be interrogated, read and written using the nanoparquet package, the arrow package or duckdb.
+
+Very simple reads which are only useful for reading entire files!
 ```{r,warning=FALSE,eval=FALSE}
 df <- nanoparquet::read_parquet("example.parquet")
 # or
@@ -201,23 +203,33 @@ To see various content of parqet files you can use:
     nanoparquet::parquet_schema() #shows all columns, including non-leaf columns, and how they are mapped to R types by read_parquet().
 
     nanoparquet::parquet_metadata() #shows the most complete metadata information: file meta data, the schema, the row groups and column chunks of the file.
-    
-colnames(arrow::open_dataset(sources = "C:/Data/parquet/mtcars") |>
-  dplyr::collect()) # provides a vector of column names    
+   
+# Names:     
+ds <- open_dataset("file.parquet")
+ds
+
+# Head:
+ds |> head(10) |> collect()
+
+# str:
+ds |> slice_head(n = 100) |> collect() |> glimpse()
+
 ```
-In most cases what is needed from the raw parquet files is not the full content, but a content filtered to use selected columns and further only selected rows.  This is effectively done using the **DUCKDB** database program.  This can be used with dplyr or using SQL directly. I will use dplyr below. 
+In most cases what is needed from the raw parquet files is not the full content, but a content filtered to use selected columns and further only selected rows. Two methods are recommended.  The **arrow** package is likely most efficident for simple reads of files and **duckdb** more efficient for very large datasets.  Both methods can be integreted with **dplyr** which allows intuitive R-commands to be used instead of learning **SQL** language.  The examples below uses both general methods and with dplyr.
 
-## Read from a single parquet file
+## Read with DUCKDB
 ```{r,warning=FALSE,eval=FALSE}
-con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:") #Establish connection - in memory
-
+con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:") #Establish duckdb connection - in memory
+# If you want to filter by an ID-list with just IDs:
+filter <- copy_to(con,IDlist,temporary=TRUE,overwrite = TRUE)
 data_subset <- tbl(con, "read_parquet('patients.parquet')") |>
 # If this is to run in a loop where the file is a character variable "x"
-# then You need to write: tbl(con,paste0("read_parquet('",x,"')"))
+# then You need to write: tbl(con,paste0("read_parquet('",x,"')")).
 # You have to create a string 
-select(id, age, diagnosis) |>        # Column filtering
+select(ID, age, diagnosis) |>        # Column filtering
 filter(age > 50, diagnosis == "I21") |>  # Row filtering
-collect() # Afslutter dannelse af dataset
+semi_join(filter,by="ID") # only those present in filter  
+collect() # Only now is data read from disk and combined
 
 dbDisconnect(con, shutdown = TRUE)
 setDT(data_subset) # Optional -> data.table
@@ -231,28 +243,41 @@ Explanation
     filter() reduces number of rows
 
     collect() pulls only the filtered data into R
-
-## Read from a sequence of similar parquet files
-```{r,warning=FALSE}
-library(DBI) # data base interface
+    
+## Read a sequence of files directly with DUCKDB - no loop    
+```{r,warning=FALSE}    
 library(duckdb)
 library(dplyr)
+library(glue)
 
-con <- dbConnect(duckdb(), ":memory:") 
+# 1. Your character vector
+my_files <- c("patients_part1.parquet", "patients_part2.parquet")
 
-files <- list.files(  # Create the list of files - with a regular expression
- "data/patients",
-  pattern = "\\.parquet$",
-  full.names = TRUE
-)
+# 2. Format the vector for SQL: ['file1', 'file2']
+sql_files <- glue("['{paste(my_files, collapse = \"', '\")}']")
 
-result <- tbl(con, read_parquet(files)) |>
- select(id, diagnosis, date) |>
-  filter(date >= "2020-01-01") |>
+# 3. Add 'union_by_name = true' as the second argument to ensure that
+# this works even if the columns are slightly different
+data_subset <- tbl(con, sql(glue("
+  SELECT * FROM read_parquet({sql_files}, union_by_name = true)
+")))  
+# 4. Use your pipe as normal
+data_subset |> 
+  select(pnr, starts_with("m")) |> 
   collect()
-
-dbDisconnect(con, shutdown = TRUE)
 ```
+## Reading with the arrow package - no DUCKDB
+With large datasets DUCKDB is anticipated to be faster than arrow, but with 
+smaller datasets arrow is simpler
+```{r,warning=FALSE}    
+ds <- arrow::open_dataset("path to file")
+ds |>
+  select() |>
+  filter() |>
+  collect()
+```
+For a range of files in Statistics Denmark the DUCKDB solution is much preferred since DUCKDB can handle that columns vary a bit between datasets and there are minor issues with this in some of the sequential datasets.
+
 
 # Manipulating data
 This is described using data.table. In this description **DT** represents your data.table object. The general format for manipulating is **DT[i,j,by]**. This is most easily learned by remembering that records or rows can be subset using "i", columns can be selected, manipulated, or calculated using "j", and finally grouped using "by". So the general rule is **DT[where,what,grouping]**.
