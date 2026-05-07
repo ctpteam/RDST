@@ -1,5 +1,5 @@
 ---
-title: "**Applying for RKKP data**"
+title: "**Applying for SundK/RKKP data**"
 author: "Cæcilie Stilling Denholt & Mikkel Porsborg Andersen"
 date: "`r format(Sys.time(), '%d. %B %Y')`"
 output:
@@ -9,23 +9,15 @@ editor_options:
     wrap: 72
 ---
 
-If you need access to an RKKP database adhere to the following steps:
+If you need access to a SundK/RKKP database adhere to the following steps:
 
-1.  Go to DDV at remote.dst.dk → find your project folder → pick the
-    latest project version → go to ‘Dataindhold’ → scroll down to
-    ‘Øvrige datakilder’ Here, **you should check whether the RKKP
-    database is registered on the project folder**. If it is registered
-    adhere to bulletpoint #2 and 3. If it is not, you should contact the
-    datamanagers with the following information (along with point #2-3):
+1.  You should contact the network administrators with the following information (along with point #2-3):
 
--   Which RKKP database do you need, and for which project folder
+-   Which SundK/RKKP database do you need, and for which project folder
 -   5-10 lines about why the database is relevant for the project, and
     what it will be used for in relation to the overall aim of the
     specific project folder (can be found in DDV under the latest
     project version)
-
-Send the following to the datamanager (if relevant, along with the info
-from step 1):
 
 2.  You need to fill out a protocol with the following information:
 
@@ -43,8 +35,8 @@ from step 1):
 -   Project research group → name, title, address, phone number and
     e-mail of each member of the project research group
 
-3.  Go to rkkp-forskningsadgang.dk → use the application module as a
+3.  Go to forskningsadgang.sundk.dk → use the application module as a
     template and fill it out in a Word-document.
 
-    Fill out the variable list from RKKP with the variables, you want
+    Fill out the variable list from SundK/RKKP with the variables, you want
     access to.
