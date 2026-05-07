@@ -67,6 +67,26 @@ Be aware that it's not a task for the network administrators to export results.
 
 ------------------------------------------------------------------------
 
+## Upload programs to a project folder
+
+Like for the exports, programs for upload cannot contain microdata.
+When you and at least one other researcher has looked through the program,
+ask a steering committee member (older) to send the following information
+to the network administrators:
+
+-   A short description of the programs content
+
+-   The names of the researchers, who have checked the files for microdata
+
+One R-file and one SAS-file can be moved. If more files need to be
+moved, please gather them in one file.
+
+When checking for microdata, please adhere to the procedure described in
+[**Rules of
+Engagement**](https://github.com/ctpteam/DST/blob/master/Programming%20guidance/rulesOfEngagement.pdf).
+
+------------------------------------------------------------------------
+
 ## Upload data to the project folder
 
 You should never upload data before you have permission from your
