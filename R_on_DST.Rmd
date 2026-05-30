@@ -182,8 +182,66 @@ It is generally useful to create small tables to check that your data are what y
 * **object[,.N,keyby=var1]** which will tabulate the number of records by var1. Tabulation by multiple variables can be done by replacing keyby=var1 with character vector: **keyby=c("var1","var2"...)** or list **keyby=.(var1,var2...)**.
 
 # Parquet files
-Parquet files are column oriented which reduces size and makes them fast to read. This is the future raw data as of February 2026. Parquet files can be interrogated, read and written using the nanoparquet package, the arrow package or duckdb.
+Parquet files are column oriented which reduces size and makes them fast to read. This is the data format we intend to use exclusively over a period. Parquet files can be interrogated, read and written using the nanoparquet package, the arrow package or duckdb.
 
+Parquet files comes in two flavors. The first is a plain file. this can be read with simple readers such as read_parquet from arrows.  The second is a directory of chunks where the directory has a name that ends with ".parquet".  These are highly efficient since reading can be paralellized, but they need more complex use of duckdb and arrows
+
+## File structure
+The most important is to be able to get an overview of content:
+## What is in my file
+
+ 
+
+Som important R-equivalents are shown below. Note that DUCKDB is consitently used, it is quicker than Arrow functions for producing simple summaries - for larger data manipulations is is more uncertain whether Arrow or Duckdb is quicker.
+
+```{r setup, include=FALSE}
+library(DBI)
+library(duckdb)
+library(dplyr)
+library(dbplyr)
+
+# Establish DUCKDB connection
+con <- dbConnect(duckdb::duckdb())
+
+# Open lazily - Lizily implies that only secondary information on tables is read and further that a DUCKDB # relation is made # # # with the name "con".  Other commands then refer to "con"
+
+# Establish connection with the data - note that "con" is only used when the database engine is contacted # # directly
+
+dataset <- tbl(
+  con,
+  sql("
+    SELECT *
+    FROM 'Z:/Workdata/703740/rawdata_parquet_ctp/Grunddata/laboratory/lab_forsker.parquet'
+  ")
+)
+
+
+# First 10 rows
+dataset |>
+  head(10) |>
+  collect()
+
+# First 10 rows with all columns shown
+dataset |>
+  head(10) |>
+  collect() |>
+  print(width = Inf)
+
+# Row count
+dataset |>
+  summarise(n = n()) |>
+  collect()
+
+# R-style structure check
+dataset |>
+  head(10) |>
+  collect() |>
+  glimpse()
+
+# The end! - You may experience error messages if repeated objects are assigned to "con"
+# Only shut down if you are not continuing to use the connection for reading/filtering data
+dbDisconnect(con, shutdown = TRUE)
+```
 Very simple reads which are only useful for reading entire files!
 ```{r,warning=FALSE,eval=FALSE}
 df <- nanoparquet::read_parquet("example.parquet")
@@ -196,24 +254,11 @@ arrow::write_parquet(mtcars, "mtcars.parquet")
 
 ```
 
-To see various content of parqet files you can use:
-```{r,warning=FALSE,eval=FALSE}
-    nanoparquet::parquet_info() #shows a basic summary of the file.
 
-    nanoparquet::parquet_schema() #shows all columns, including non-leaf columns, and how they are mapped to R types by read_parquet().
+nanoparquet::parquet_schema() #shows all columns, including non-leaf columns, and how they are mapped to R types by read_parquet().
 
-    nanoparquet::parquet_metadata() #shows the most complete metadata information: file meta data, the schema, the row groups and column chunks of the file.
+nanoparquet::parquet_metadata() #shows the most complete metadata information: file meta data, the schema, the row groups and column chunks of the file.
    
-# Names:     
-ds <- open_dataset("file.parquet")
-ds
-
-# Head:
-ds |> head(10) |> collect()
-
-# str:
-ds |> slice_head(n = 100) |> collect() |> glimpse()
-
 ```
 In most cases what is needed from the raw parquet files is not the full content, but a content filtered to use selected columns and further only selected rows. Two methods are recommended.  The **arrow** package is likely most efficident for simple reads of files and **duckdb** more efficient for very large datasets.  Both methods can be integreted with **dplyr** which allows intuitive R-commands to be used instead of learning **SQL** language.  The examples below uses both general methods and with dplyr.
 
@@ -250,7 +295,7 @@ library(duckdb)
 library(dplyr)
 library(glue)
 
-# 1. Your character vector
+# 1. Your character vector of files
 my_files <- c("patients_part1.parquet", "patients_part2.parquet")
 
 # 2. Format the vector for SQL: ['file1', 'file2']
