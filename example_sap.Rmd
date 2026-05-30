@@ -1,0 +1,31 @@
+---
+title: "**Example - Statistical Analysis Plan**"
+author: "Christoffer Polcwiartek, Mikkel Porsborg Andersen & Christian Torp-Pedersen"
+date: "`r format(Sys.time(), '%d. %B %Y')`"
+output:
+  pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+Before preparing a Statistical Analysis Plan (SAP), we recommend that researchers  read and familiarize themselves with the basic principles and recommendations stated in the [**Healthy Epidemiology guidance**](https://github.com/ctpteam/DST/blob/master/Programming%20guidance/HealthyEpidemiology.pdf).
+
+## Purpose
+This document provides guidance for the development, content, and implementation of an SAP. The purpose of an SAP is to ensure that statistical analyses are scientifically sound, transparent, and complies with the underlying research question, design, and setting of the study.
+
+## Applicability
+The SAP is a prospective document and should be prepared prior to the initiation of data management and statistical analysis at Statistics Denmark. The focus of an SAP should be on clearly defining the study population, exposures, covariates, and outcomes, as well as providing a detailed description of the planned statistical methods. As such, the level of detail in an SAP should be somewhat proportional to the study complexity, data availability, and potential implications. We recommend that all SAPs should adhere to the core principles outlined in this guidance.
+
+## Required components
+The structure of an SAP should enable transparent and consistent analyses, be based on healthy epidemiological practice, and demonstrate careful handling and appropriate interpretation of data.
+
+1)    a brief overview of the basic administrative information related to the study should incorporate the study title and names of the key members of the research team.
+2)    a study overview should be provided, summarizing the study design, time period, data sources, and primary objectives.
+3)    a clear definition of the study population should be provided, including detailed inclusion and exclusion criteria.
+4)    the SAP must clearly define exposures and outcomes, detailing their operational definitions, and describe follow-up and censoring where applicable.
+5)    all potentially relevant covariates and confounders to be included in the analysis should be listed.
+6)    the planned statistical methods should be described comprehensively, including the primary and secondary analyses, model specifications, effect measures, and assumptions.
+
+## Good scientific practice
+A well-prepared SAP is essential to ensure that analyses are conducted meticulously, transparently, and in alignment with the scientific intent of the study. Applying the principles and components outlined here will support reproducible analyses, minimize bias, enable clear interpretation of data, and hopefully strengthen the credibility and reliability of the findings.

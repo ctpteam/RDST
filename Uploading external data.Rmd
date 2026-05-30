@@ -1,0 +1,29 @@
+---
+title: "**Uploading external data to the DST servers**"
+author: "Cæcilie Stilling Denholt & Mikkel Porsborg Andersen"
+date: "`r format(Sys.time(), '%d. %B %Y')`"
+output:
+  pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+If you need a dataset uploaded to the DST servers, please coordinate this with your steering committee member (older) and then follow the procedure below:
+
+1.  If your data is approved in Region Hovedstaden, we will have to do an internal transfer (*intern overdragelsesaftale*) of the data. You should send the following information to the network administrators: a) description of the data and the categories of data, b) the project manager listed on the approval, and c) the approval number.
+
+    If your data is approved elsewhere, we will have to do disclosure agreement (*videregivelsesaftale*), and you should contact your data responsible institution for guidance on this process.
+
+When the procedure above has been executed, adhere to the following steps:
+
+2.  You should contact the network administrators with the following information (along with the info in step 3):
+
+-   Which database you need uploaded, and for which project folder
+-   5-10 lines about why the database is relevant for the project, and what it will be used for in relation to the overall aim of the specific project folder (can be found in DDV under the latest project version)
+
+3.  Prepare your data as a SAS-dataset. Adhere to [**DST’s rules**](https://www.dst.dk/en/TilSalg/data-til-forskning/anmodning-om-data/tilknytning-af-ovrige-data) (e.g. no free text variables). Note, there can only be one unique identifier (usually pseudonymized CPR-number).
+
+    Prepare a list of variables and a short description for each variable.
+
+Lastly, before contacting the network administrators please adhere to the steps above.
