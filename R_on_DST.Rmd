@@ -81,7 +81,7 @@ This sequence of actions sets up the necessary directory structure in the specif
 
 Below is an example illustrating the application of the Targets package:
 
-```{r,warning=FALSE}
+```{r,eval=FALSE}
 # Install required packages if not already installed
 if (!requireNamespace("targets", quietly = TRUE)) {
   install.packages("targets")
@@ -182,19 +182,17 @@ It is generally useful to create small tables to check that your data are what y
 * **object[,.N,keyby=var1]** which will tabulate the number of records by var1. Tabulation by multiple variables can be done by replacing keyby=var1 with character vector: **keyby=c("var1","var2"...)** or list **keyby=.(var1,var2...)**.
 
 # Parquet files
-Parquet files are column oriented which reduces size and makes them fast to read. This is the data format we intend to use exclusively over a period. Parquet files can be interrogated, read and written using the nanoparquet package, the arrow package or duckdb.
+Parquet files are column oriented which reduces size and makes them fast to read. This is the data format we intend to use exclusively. Parquet files can be interrogated, read and written using the nanoparquet package, the arrow package or duckdb.
 
-Parquet files comes in two flavors. The first is a plain file. this can be read with simple readers such as read_parquet from arrows.  The second is a directory of chunks where the directory has a name that ends with ".parquet".  These are highly efficient since reading can be paralellized, but they need more complex use of duckdb and arrows
+Parquet files comes in two flavors. The first is a plain file. this can be read with simple readers such as read_parquet from arrows.  The second is a directory of chunks where the directory has a name that ends with ".parquet".  These are highly efficient since reading can be parallelized, but they need more complex use of duckdb and arrows
 
-## File structure
+
 The most important is to be able to get an overview of content:
 ## What is in my file
 
- 
+Som important R-equivalents are shown below. Note that DUCKDB is consitently used, it is quicker than Arrow functions for producing simple summaries.
 
-Som important R-equivalents are shown below. Note that DUCKDB is consitently used, it is quicker than Arrow functions for producing simple summaries - for larger data manipulations is is more uncertain whether Arrow or Duckdb is quicker.
-
-```{r setup, include=FALSE}
+```{r setup, eval=FALSE}
 library(DBI)
 library(duckdb)
 library(dplyr)
@@ -202,7 +200,6 @@ library(dbplyr)
 
 # Establish DUCKDB connection
 con <- dbConnect(duckdb::duckdb())
-
 # Open lazily - Lizily implies that only secondary information on tables is read and further that a DUCKDB # relation is made # # # with the name "con".  Other commands then refer to "con"
 
 # Establish connection with the data - note that "con" is only used when the database engine is contacted # # directly
@@ -265,8 +262,12 @@ In most cases what is needed from the raw parquet files is not the full content,
 ## Read with DUCKDB
 ```{r,warning=FALSE,eval=FALSE}
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:") #Establish duckdb connection - in memory
+# For parquet objects that are directories the following command can paralellize
+# and speed up reading 
+dbExecute(con,"SET threads=10") 
 # If you want to filter by an ID-list with just IDs:
 filter <- copy_to(con,IDlist,temporary=TRUE,overwrite = TRUE)
+# The following works if patients.parquet is a single distinct file.
 data_subset <- tbl(con, "read_parquet('patients.parquet')") |>
 # If this is to run in a loop where the file is a character variable "x"
 # then You need to write: tbl(con,paste0("read_parquet('",x,"')")).
@@ -276,6 +277,22 @@ filter(age > 50, diagnosis == "I21") |>  # Row filtering
 semi_join(filter,by="ID") # only those present in filter  
 collect() # Only now is data read from disk and combined
 
+# If the parquet objecty is a directory of chunkts the sequence is a bit different 
+# since read_parquet only addresses single files
+DBI::dbExecute(con,
+      glue("
+      CREATE VIEW parquet_data AS
+      SELECT *
+      FROM parquet_scan('patients.parquet/*.parquet')
+      ")
+)
+data_subset <- tbl(con,"parquet_data") |>
+select(ID, age, diagnosis) |>        # Column filtering
+filter(age > 50, diagnosis == "I21") |>  # Row filtering
+semi_join(filter,by="ID") # only those present in filter  
+collect() # Only now is data read from disk and combined
+
+# With both methods it is wise to close the connection
 dbDisconnect(con, shutdown = TRUE)
 setDT(data_subset) # Optional -> data.table
 ```
@@ -290,7 +307,7 @@ Explanation
     collect() pulls only the filtered data into R
     
 ## Read a sequence of files directly with DUCKDB - no loop    
-```{r,warning=FALSE}    
+```{r,eval=FALSE}    
 library(duckdb)
 library(dplyr)
 library(glue)
@@ -313,13 +330,15 @@ data_subset |>
 ```
 ## Reading with the arrow package - no DUCKDB
 With large datasets DUCKDB is anticipated to be faster than arrow, but with 
-smaller datasets arrow is simpler
-```{r,warning=FALSE}    
-ds <- arrow::open_dataset("path to file")
+smaller datasets arrow is simpler.  Note that the very simple "read" functions from arrow/nanoparquet only works on parquet objects that are single files.  One advantage of arrow is that the open_dataset() function works equally on single file and directories of chunks.
+```{r,eval=FALSE}    
+set_cpu_count(5) # If relevant for arrow to paralellize reading
+ds <- arrow::open_dataset("path to file(s)")
 ds |>
   select() |>
   filter() |>
   collect()
+# Note: no need to 'close' ds  
 ```
 For a range of files in Statistics Denmark the DUCKDB solution is much preferred since DUCKDB can handle that columns vary a bit between datasets and there are minor issues with this in some of the sequential datasets.
 
@@ -384,7 +403,7 @@ If you need sorting an variable order the functions to use are **setorder()** an
 ## Mark groups with or without sorting
 It is common that a variable is required which changes value when treatment, status or other individual characteristics change. Such grouping can be tricky since "by" in data.table also may sort the data - and unwanted results are returned if the characteristic studied may fluctuate between values such that one value appear several times.  The **rleid** function is very useful in such cases.
 
-```{r}
+```{r, eval=FALSE}
  library(data.table)
  # Create a sample data.table
  data <- data.table(
@@ -427,11 +446,11 @@ DT1[DT2]
 Alternatively, you can use **newDT <- DT1[DT2,on=.(idvar=idvar)]** if you are not using the **setkey** function. A left merge, one where DT1 is kept intact and updated with variables from DT2 could be made by switching the order.
 
 An **outer merge** is one where all records from both data.tables are present and NAs are placed where tables do not contribute with data.  In this case you need to use the **merge** function with **all=TRUE**:
-```{r}
+```{r, eval=FALSE}
 merge(DT1,DT2,by="a",all=TRUE)
 ```
 An **inner merge** is one where only records where both datasets contribute are in the result:
-```{r}
+```{r, eval=FALSE}
 merge(DT1,DT2,by="a") # or you could have written all=FALSE
 ```
 Using the **merge** function You can select **left** and **right** merge with **all.x=TRUE** and **all.y=TRUE**.
