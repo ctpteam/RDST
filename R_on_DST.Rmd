@@ -192,7 +192,7 @@ The most important is to be able to get an overview of content:
 
 Som important R-equivalents are shown below. Note that DUCKDB is consitently used, it is quicker than Arrow functions for producing simple summaries.
 
-```{r setup, eval=FALSE}
+```{r, eval=FALSE}
 library(DBI)
 library(duckdb)
 library(dplyr)
