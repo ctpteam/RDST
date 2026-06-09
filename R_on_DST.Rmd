@@ -182,9 +182,19 @@ It is generally useful to create small tables to check that your data are what y
 * **object[,.N,keyby=var1]** which will tabulate the number of records by var1. Tabulation by multiple variables can be done by replacing keyby=var1 with character vector: **keyby=c("var1","var2"...)** or list **keyby=.(var1,var2...)**.
 
 # Parquet files
-Parquet files are column oriented which reduces size and makes them fast to read. This is the data format we intend to use exclusively. Parquet files can be interrogated, read and written using the nanoparquet package, the arrow package or duckdb.
+## What is a Parquet dataset?
 
-Parquet files comes in two flavors. The first is a plain file. this can be read with simple readers such as read_parquet from arrows.  The second is a directory of chunks where the directory has a name that ends with ".parquet".  These are highly efficient since reading can be parallelized, but they need more complex use of duckdb and arrows
+Parquet is a compressed, column-oriented storage format. It is designed for analytical work.
+
+A Parquet dataset is often a directory, not a single file:
+
+```text
+laboratorieproevesvar.parquet/
+    part_000000.parquet
+    part_000001.parquet
+    part_000002.parquet
+    ...
+```
 
 
 The most important is to be able to get an overview of content:
@@ -250,98 +260,535 @@ nanoparquet::write_parquet(mtcars, "mtcars.parquet")
 arrow::write_parquet(mtcars, "mtcars.parquet")
 
 ```
+Define the study population first. Use that population as a filter before collecting large registry data into R.
 
+For small and moderate datasets, `arrow` is often the simplest tool. For very large datasets, especially when joins and complex filters are needed, `duckdb` is often the safest and fastest approach.
 
-nanoparquet::parquet_schema() #shows all columns, including non-leaf columns, and how they are mapped to R types by read_parquet().
+# The usual registry workflow
 
-nanoparquet::parquet_metadata() #shows the most complete metadata information: file meta data, the schema, the row groups and column chunks of the file.
-   
+Most studies follow this structure:
+
+```text
+Define study population
+        ↓
+Create pnrlist
+        ↓
+Use pnrlist as a filter
+        ↓
+Read cancer / hospital / medication / laboratory / social data
+        ↓
+Collect only the relevant rows and columns
+        ↓
+Continue analysis in data.table, dplyr or survival models
 ```
-In most cases what is needed from the raw parquet files is not the full content, but a content filtered to use selected columns and further only selected rows. Two methods are recommended.  The **arrow** package is likely most efficident for simple reads of files and **duckdb** more efficient for very large datasets.  Both methods can be integreted with **dplyr** which allows intuitive R-commands to be used instead of learning **SQL** language.  The examples below uses both general methods and with dplyr.
 
-## Read with DUCKDB
-```{r,warning=FALSE,eval=FALSE}
-con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:") #Establish duckdb connection - in memory
-# For parquet objects that are directories the following command can paralellize
-# and speed up reading 
-dbExecute(con,"SET threads=10") 
-# If you want to filter by an ID-list with just IDs:
-filter <- copy_to(con,IDlist,temporary=TRUE,overwrite = TRUE)
-# The following works if patients.parquet is a single distinct file.
-data_subset <- tbl(con, "read_parquet('patients.parquet')") |>
-# If this is to run in a loop where the file is a character variable "x"
-# then You need to write: tbl(con,paste0("read_parquet('",x,"')")).
-# You have to create a string 
-select(ID, age, diagnosis) |>        # Column filtering
-filter(age > 50, diagnosis == "I21") |>  # Row filtering
-semi_join(filter,by="ID") # only those present in filter  
-collect() # Only now is data read from disk and combined
+The `pnrlist` is the central filter used to reduce all subsequent data queries.
 
-# If the parquet objecty is a directory of chunkts the sequence is a bit different 
-# since read_parquet only addresses single files
-DBI::dbExecute(con,
-      glue("
-      CREATE VIEW parquet_data AS
-      SELECT *
-      FROM parquet_scan('patients.parquet/*.parquet')
-      ")
-)
-data_subset <- tbl(con,"parquet_data") |>
-select(ID, age, diagnosis) |>        # Column filtering
-filter(age > 50, diagnosis == "I21") |>  # Row filtering
-semi_join(filter,by="ID") # only those present in filter  
-collect() # Only now is data read from disk and combined
+A minimal population filter contains one row per person:
 
-# With both methods it is wise to close the connection
-dbDisconnect(con, shutdown = TRUE)
-setDT(data_subset) # Optional -> data.table
+```r
+pnrlist <- population[, .(pnr)]
 ```
-Explanation
+# Finding Parquet datasets
 
-    tbl() creates a lazy DuckDB query
+For a directory-style Parquet dataset, DuckDB usually reads the individual part files:
 
-    select() reduces number of columns
+```r
+paste0(dirstart, "/Grunddata/laboratory/laboratorieproevesvar.parquet/*.parquet")
+```
 
-    filter() reduces number of rows
+# Arrow or DuckDB?
 
-    collect() pulls only the filtered data into R
-    
-## Read a sequence of files directly with DUCKDB - no loop    
-```{r,eval=FALSE}    
+| Task | Recommended tool |
+|---|---|
+| Inspect dataset structure | Arrow or DuckDB |
+| Read selected columns from moderate data | Arrow |
+| Simple row filters | Arrow |
+| Join a huge registry file to a study population | DuckDB |
+| Search large text/code variables | DuckDB |
+| Aggregate before collecting | DuckDB |
+| Count rows before collecting | DuckDB |
+| Return a final R object for analysis | Either |
+
+A practical rule is:
+
+> Use Arrow to read data. Use DuckDB to search, filter, join and aggregate data before reading it into R.
+
+# Large worked DuckDB example
+
+This is the main pattern to copy for large datasets.
+
+The example:
+
+1. reads from a Parquet dataset,
+2. selects only needed columns,
+3. filters rows,
+4. restricts to the study population,
+5. optionally limits the result during testing,
+6. collects the result into R,
+7. changes all variable names to lower case,
+8. returns a `data.table`.
+
+The example uses laboratory data, but the pattern also applies to medication, LPR, cancer and socioeconomic data.
+
+```r
+library(DBI)
 library(duckdb)
-library(dplyr)
+library(data.table)
 library(glue)
 
-# 1. Your character vector of files
-my_files <- c("patients_part1.parquet", "patients_part2.parquet")
+# -------------------------------------------------------------------------
+# 1. Development setting
+# -------------------------------------------------------------------------
+# Use a small limit while developing and testing the query.
+# Set TEST_LIMIT <- NULL before the final analysis.
+#
+# IMPORTANT:
+# The limit is added at the END of the SQL query.
+# Do not use head() before filtering or joining, because that tests a
+# different query from the final one.
+# -------------------------------------------------------------------------
 
-# 2. Format the vector for SQL: ['file1', 'file2']
-sql_files <- glue("['{paste(my_files, collapse = \"', '\")}']")
+TEST_LIMIT <- 10000
+# TEST_LIMIT <- NULL   # Use this for the final production run
 
-# 3. Add 'union_by_name = true' as the second argument to ensure that
-# this works even if the columns are slightly different
-data_subset <- tbl(con, sql(glue("
-  SELECT * FROM read_parquet({sql_files}, union_by_name = true)
-")))  
-# 4. Use your pipe as normal
-data_subset |> 
-  select(pnr, starts_with("m")) |> 
+
+# -------------------------------------------------------------------------
+# 2. Connect to DuckDB
+# -------------------------------------------------------------------------
+# For one large dataset, one DuckDB connection with several threads is usually
+# better than many parallel R workers.
+# -------------------------------------------------------------------------
+
+con <- dbConnect(
+  duckdb(),
+  dbdir = ":memory:",
+  config = list(
+    threads = "20"
+  )
+)
+
+on.exit(
+  dbDisconnect(con, shutdown = TRUE),
+  add = TRUE
+)
+
+
+# -------------------------------------------------------------------------
+# 3. Define the Parquet dataset
+# -------------------------------------------------------------------------
+# Many Parquet datasets are directories containing several part files.
+# The wildcard reads all part files in the dataset.
+# -------------------------------------------------------------------------
+
+labfiles <- paste0(
+  dirstart,
+  "/Grunddata/laboratory/laboratorieproevesvar.parquet/*.parquet"
+)
+
+
+# -------------------------------------------------------------------------
+# 4. Upload the study population to DuckDB
+# -------------------------------------------------------------------------
+# pnrlist should have been created earlier in the project.
+#
+# Minimal example:
+#   pnrlist <- population[, .(pnr)]
+#
+# The temporary DuckDB table is used to restrict the large registry dataset
+# before data are collected into R.
+# -------------------------------------------------------------------------
+
+dbWriteTable(
+  con,
+  "study_population",
+  pnrlist,
+  temporary = TRUE,
+  overwrite = TRUE
+)
+
+
+# -------------------------------------------------------------------------
+# 5. Build the SQL query
+# -------------------------------------------------------------------------
+# The query does four important things inside DuckDB:
+#
+#   a. Reads directly from Parquet.
+#   b. Selects only needed columns.
+#   c. Filters rows by analysis code.
+#   d. Restricts to the study population.
+#
+# Only after this has been done is the result returned to R.
+# -------------------------------------------------------------------------
+
+limit_clause <- if (is.null(TEST_LIMIT)) {
+  ""
+} else {
+  paste0("\nLIMIT ", as.integer(TEST_LIMIT))
+}
+
+sql_lab <- glue("
+  SELECT
+      l.pnr,
+      l.analysiscode,
+      l.samplingdate,
+      l.samplevalue,
+      l.unit
+  FROM parquet_scan('{labfiles}') AS l
+  INNER JOIN study_population AS p
+      ON l.pnr = p.pnr
+  WHERE
+      l.analysiscode LIKE 'NPU03%'
+      OR l.analysiscode LIKE 'NPU04%'
+  {limit_clause}
+")
+
+
+# -------------------------------------------------------------------------
+# 6. Inspect the query before running it
+# -------------------------------------------------------------------------
+# This is useful when debugging.
+# -------------------------------------------------------------------------
+
+cat(sql_lab)
+
+
+# -------------------------------------------------------------------------
+# 7. Count matching rows before collecting
+# -------------------------------------------------------------------------
+# This version deliberately does not include the development LIMIT.
+# It estimates the size of the final result.
+# -------------------------------------------------------------------------
+
+sql_count <- glue("
+  SELECT count(*) AS n
+  FROM parquet_scan('{labfiles}') AS l
+  INNER JOIN study_population AS p
+      ON l.pnr = p.pnr
+  WHERE
+      l.analysiscode LIKE 'NPU03%'
+      OR l.analysiscode LIKE 'NPU04%'
+")
+
+dbGetQuery(con, sql_count)
+
+
+# -------------------------------------------------------------------------
+# 8. Execute and collect
+# -------------------------------------------------------------------------
+# Only the selected, filtered and population-restricted result is transferred
+# into R.
+# -------------------------------------------------------------------------
+
+labdata <- dbGetQuery(con, sql_lab)
+
+
+# -------------------------------------------------------------------------
+# 9. Convert to data.table and lower-case all names
+# -------------------------------------------------------------------------
+# Lower-case names make later code more consistent across registers.
+# -------------------------------------------------------------------------
+
+setDT(labdata)
+setnames(labdata, tolower(names(labdata)))
+
+
+# -------------------------------------------------------------------------
+# 10. Result
+# -------------------------------------------------------------------------
+# labdata is now a data.table.
+# -------------------------------------------------------------------------
+
+labdata
+```
+
+## Same example as a reusable function
+
+For real projects, it is often cleaner to put the pattern in a function.
+
+```r
+read_lab_values <- function(
+  dirstart,
+  pnrlist,
+  test_limit = 10000,
+  threads = 20
+) {
+  con <- DBI::dbConnect(
+    duckdb::duckdb(),
+    dbdir = ":memory:",
+    config = list(
+      threads = as.character(threads)
+    )
+  )
+
+  on.exit(
+    DBI::dbDisconnect(con, shutdown = TRUE),
+    add = TRUE
+  )
+
+  labfiles <- paste0(
+    dirstart,
+    "/Grunddata/laboratory/laboratorieproevesvar.parquet/*.parquet"
+  )
+
+  DBI::dbWriteTable(
+    con,
+    "study_population",
+    pnrlist,
+    temporary = TRUE,
+    overwrite = TRUE
+  )
+
+  limit_clause <- if (is.null(test_limit)) {
+    ""
+  } else {
+    paste0("\nLIMIT ", as.integer(test_limit))
+  }
+
+  sql <- glue::glue("
+    SELECT
+        l.pnr,
+        l.analysiscode,
+        l.samplingdate,
+        l.samplevalue,
+        l.unit
+    FROM parquet_scan('{labfiles}') AS l
+    INNER JOIN study_population AS p
+        ON l.pnr = p.pnr
+    WHERE
+        l.analysiscode LIKE 'NPU03%'
+        OR l.analysiscode LIKE 'NPU04%'
+    {limit_clause}
+  ")
+
+  result <- DBI::dbGetQuery(con, sql)
+
+  data.table::setDT(result)
+  data.table::setnames(result, tolower(names(result)))
+
+  result
+}
+```
+
+Use during development:
+
+```r
+labdata <- read_lab_values(
+  dirstart = dirstart,
+  pnrlist = pnrlist,
+  test_limit = 10000
+)
+```
+
+Use for final analysis:
+
+```r
+labdata <- read_lab_values(
+  dirstart = dirstart,
+  pnrlist = pnrlist,
+  test_limit = NULL
+)
+```
+
+# Reading with Arrow
+
+Arrow is often the simplest tool for moderate-sized datasets.
+
+```r
+library(arrow)
+
+ds <- open_dataset(
+  paste0(
+    dirstart,
+    "/Grunddata/cancer/tumor_aarlig.parquet"
+  )
+)
+```
+
+No data are read yet.
+
+Inspect variables:
+
+```r
+names(ds)
+schema(ds)
+```
+
+Read selected variables:
+
+```r
+cancer <- ds |>
+  select(
+    pnr,
+    diagnosedato,
+    icd10
+  ) |>
   collect()
 ```
-## Reading with the arrow package - no DUCKDB
-With large datasets DUCKDB is anticipated to be faster than arrow, but with 
-smaller datasets arrow is simpler.  Note that the very simple "read" functions from arrow/nanoparquet only works on parquet objects that are single files.  One advantage of arrow is that the open_dataset() function works equally on single file and directories of chunks.
-```{r,eval=FALSE}    
-set_cpu_count(5) # If relevant for arrow to paralellize reading
-ds <- arrow::open_dataset("path to file(s)")
-ds |>
-  select() |>
-  filter() |>
-  collect()
-# Note: no need to 'close' ds  
-```
-For a range of files in Statistics Denmark the DUCKDB solution is much preferred since DUCKDB can handle that columns vary a bit between datasets and there are minor issues with this in some of the sequential datasets.
 
+Filter before reading:
+
+```r
+cancer <- ds |>
+  filter(
+    diagnosedato >= as.Date("2020-01-01")
+  ) |>
+  select(
+    pnr,
+    diagnosedato,
+    icd10
+  ) |>
+  collect()
+```
+
+# Using Arrow with the population filter
+
+For moderate-sized datasets, Arrow can be used with `semi_join()`:
+
+```r
+cancer <- ds |>
+  semi_join(
+    pnrlist,
+    by = "pnr"
+  ) |>
+  collect()
+
+setDT(cancer)
+setnames(cancer, tolower(names(cancer)))
+```
+
+For very large datasets, prefer DuckDB.
+
+# Testing queries safely
+
+A frequent mistake is:
+
+```r
+tbl(con, "large_dataset") |>
+  head(10000) |>
+  filter(...)
+```
+
+This means: take 10,000 rows first, then filter them.
+
+That is not the same as the final query.
+
+Use this instead:
+
+```r
+tbl(con, "large_dataset") |>
+  filter(...) |>
+  head(10000) |>
+  collect()
+```
+
+For SQL, place `LIMIT` at the end of the query.
+
+# Counting before collecting
+
+Before collecting millions of rows, count first.
+
+In DuckDB SQL:
+
+```r
+dbGetQuery(
+  con,
+  "
+  SELECT count(*) AS n
+  FROM lab
+  WHERE analysiscode = 'NPU03230'
+  "
+)
+```
+
+In dbplyr:
+
+```r
+query |>
+  tally() |>
+  collect()
+```
+
+This helps determine whether the result is small enough to collect.
+
+# Using dplyr with DuckDB
+
+`dplyr` can be used with DuckDB because `dbplyr` translates many operations to SQL.
+
+```r
+lab_query <- tbl(con, "lab") |>
+  semi_join(
+    tbl(con, "study_population"),
+    by = "pnr"
+  ) |>
+  filter(
+    analysiscode == "NPU03230"
+  ) |>
+  select(
+    pnr,
+    analysiscode,
+    samplingdate,
+    samplevalue
+  )
+```
+
+Inspect the generated SQL:
+
+```r
+show_query(lab_query)
+```
+
+Collect only after checking the query:
+
+```r
+labdata <- lab_query |>
+  collect()
+
+setDT(labdata)
+setnames(labdata, tolower(names(labdata)))
+```
+
+For very large or complex queries, explicit SQL is often clearer and easier to debug.
+
+# Parallel processing
+
+DuckDB supports multiple threads:
+
+```r
+dbExecute(con, "SET threads=20")
+```
+
+However, not every query can use all threads. Parallelism depends on file layout, row groups, filters, joins and available I/O.
+
+Avoid oversubscription. For example, 10 R workers each using 20 DuckDB threads can overwhelm a shared server.
+
+General rule:
+
+```text
+Many independent datasets -> several R workers, few DuckDB threads each
+One huge dataset          -> one DuckDB connection, many DuckDB threads
+```
+
+# Recommended workflow for students
+
+1. Define the study population.
+2. Create `pnrlist`.
+3. Inspect the relevant Parquet dataset.
+4. Decide whether Arrow or DuckDB is appropriate.
+5. For huge datasets, upload `pnrlist` to DuckDB.
+6. Select only required columns.
+7. Filter rows inside DuckDB or Arrow.
+8. Restrict to `pnrlist` before collecting.
+9. Count before collecting.
+10. Collect and convert to `data.table`.
+11. Lower-case variable names.
+12. Remove test limits before final analysis.
+
+# Summary
+
+The most efficient registry workflow is population-first.
+
+Do not read large registry datasets and then filter in R. Instead, filter and join as close to the Parquet dataset as possible. Arrow is excellent for simple reading and moderate data. DuckDB is the preferred tool when the dataset is large and requires joins, searches or aggregation before collection into R.
 
 # Manipulating data
 This is described using data.table. In this description **DT** represents your data.table object. The general format for manipulating is **DT[i,j,by]**. This is most easily learned by remembering that records or rows can be subset using "i", columns can be selected, manipulated, or calculated using "j", and finally grouped using "by". So the general rule is **DT[where,what,grouping]**.
