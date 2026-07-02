@@ -218,10 +218,11 @@ dataset <- tbl(
   con,
   sql("
     SELECT *
-    FROM 'Z:/Workdata/703740/rawdata_parquet_ctp/Grunddata/laboratory/lab_forsker.parquet'
+    FROM read_parquet('Z:/Workdata/703740/rawdata_parquet_ctp/Grunddata/laboratory/lab_forsker.parquet')
   ")
 )
-
+# Simple str
+dataset |> glimpse()
 
 # First 10 rows
 dataset |>
